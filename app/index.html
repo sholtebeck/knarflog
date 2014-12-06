@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="knarflog">
+<head>
+  <title>World Golf Rankings</title>
+  <!--link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css"-->
+  <link rel="stylesheet" href="css/app.css">
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
+</head>
+
+<body ng-controller="playersController">
+   Search: <input ng-model="query">
+  <p>
+  <table>
+    <thead>
+      <tr><th colspan="7">World Golf Rankings for {{players[0].Update}} (Week {{players[0].Week}})</th></tr>
+      <tr><th>#</th>
+          <th><a href="#" ng-click="orderProp='Name'">Player</name.</th>	
+          <th><a href="#" ng-click="orderProp='-Average'">Points(Avg)</a></th>	
+          <th><a href="#" ng-click="orderProp='-Total'">Points(Total)</a></th>
+          <th><a href="#" ng-click="orderProp='Rank'">World Rank</a></th>
+          <th><a href="#" ng-click="orderProp='-Points'">Points({{players[0].Year}} )</a></th>
+          <th><a href="#" ng-click="orderProp='Picker'">Picked-By</a></th>
+          </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="player in players | filter:{Name: '!!'}| filter:query | orderBy:orderProp">
+        <td>{{$index + 1}}</td>
+        <td>{{player.Name}}</td>
+        <td>{{player.Average |number:2}}</td>
+        <td>{{player.Total |number:2}}</td>
+        <td>{{player.Rank}}</td>
+        <td>{{player.Points |number:2}}</td>
+        <td>{{player.Picker}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
