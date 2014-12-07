@@ -4,10 +4,12 @@
 var knarflog = angular.module('knarflog', []);
 knarflog.controller('playersController', ['$scope', '$http',
   function($scope, $http) {
-    $http.get('rankings.json').success(function(data) {
-      $scope.players = data;
+    $http.get('/api/rankings').success(function(data) {
+      $scope.headers = data.headers;
+      $scope.players = data.players;
+      $scope.pickers = data.pickers;
     });
 
-    $scope.orderProp = 'Rank';
+    $scope.orderProp = '-Points';
   }]);
 

@@ -16,10 +16,10 @@
   <p>
   <table>
     <thead>
-      <tr><th colspan="7">World Golf Rankings for {{players[0].Update}} (Week {{players[0].Week}})</th></tr>
+      <tr><th colspan="7">World Golf Rankings for {{headers.date}} (Week {{headers.Week}})</th></tr>
       <tr><th>#</th>
-          <th><a href="#" ng-click="orderProp='Name'">Player</name.</th>	
-          <th><a href="#" ng-click="orderProp='-Average'">Points(Avg)</a></th>	
+          <th><a href="#" ng-click="orderProp='Name'">Player Name</a></th>	
+          <th><a href="#" ng-click="orderProp='-Avg'">Points(Avg)</a></th>	
           <th><a href="#" ng-click="orderProp='-Total'">Points(Total)</a></th>
           <th><a href="#" ng-click="orderProp='Rank'">World Rank</a></th>
           <th><a href="#" ng-click="orderProp='-Points'">Points({{players[0].Year}} )</a></th>
@@ -30,12 +30,32 @@
       <tr ng-repeat="player in players | filter:{Name: '!!'}| filter:query | orderBy:orderProp">
         <td>{{$index + 1}}</td>
         <td>{{player.Name}}</td>
-        <td>{{player.Average |number:2}}</td>
+        <td>{{player.Avg |number:2}}</td>
         <td>{{player.Total |number:2}}</td>
         <td>{{player.Rank}}</td>
         <td>{{player.Points |number:2}}</td>
         <td>{{player.Picker}}</td>
       </tr>
+   </tbody>
+  </table>
+<p>
+ <table>
+    <thead>
+      <tr><th>Rank</th>
+          <th>Name</th>	
+          <th>Count</a></th>	
+          <th>Total</th>
+          <th>Points</th>
+        </tr>
+    </thead>
+   <tbody>
+       <tr ng-repeat="picker in pickers | orderBy:-Points">
+        <td>{{$index + 1}}</td>
+        <td>{{picker.Name}}</td>
+        <td>{{picker.Count}}</td>
+        <td>{{picker.Total|number:2}}</td>
+        <td>{{picker.Points|number:2}}</td>
+      </tr>   
     </tbody>
   </table>
 

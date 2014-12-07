@@ -1,6 +1,9 @@
 # Get OWGR Results
-from bs4 import BeautifulSoup
 import urllib2
+# External modules (bs4)
+import sys
+sys.path[0:0] = ['lib']
+from bs4 import BeautifulSoup
 
 # Handler for string values to ASCII or integer
 def xstr(string):
@@ -26,7 +29,7 @@ def get_picks():
     }
     # initialize counter for each user
     for user in list(set(picks.values())):
-        picks[user]={'Picks':[],'Count':0,'Total':0.0,'Points':0.0 }
+        picks[user]={'Name':user,'Picks':[],'Count':0,'Total':0.0,'Points':0.0 }
     return picks
 
 def get_rank(position):
@@ -50,8 +53,8 @@ def event_headers(soup):
     if headers['url'].find('=')>0:
         headers['id']=headers['url'].split('=')[1]
     headers['name']=str(soup.find('h2').string)
-    headers['time']=str(soup.find('time').string)
-    headers['week']=headers['name'][-2:]
+    headers['date']=str(soup.find('time').string)
+    headers['Week']=headers['name'][-2:]
     headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
     return headers
 
@@ -60,7 +63,7 @@ def event_results(row, keys):
     event=dict(zip(keys,values))
     if row.find(id="ctl5"):
         event['url']=str(row.find(id="ctl5").find('a').get('href'))
-        event['event_id']=int(event.get('url').rsplit('=')[-1])
+        event['ID']=int(event.get('url').rsplit('=')[-1])
     event['Points']=int(event.get("Winner's Points",0))
     return event
 
@@ -71,7 +74,8 @@ def player_rankings(row):
     if name and len(cols)>=10:
         player_name=xstr(name.string)
         player={'Rank': int(cols[0].text), 'Name': player_name }
-        player['Ctry']= str(cols[3].img.get('title'))
+        player['ID']=int(row.find('a').get('href').rsplit('=')[-1])
+        player['Ctry']= xstr(cols[3].img.get('title'))
         player['Avg']=float(cols[5].text)
         player['Total']=float(cols[6].text)
         player['Events']=int(cols[7].text)
@@ -86,6 +90,9 @@ def player_results(row, keys):
     player['ID']=int(row.find('a').get('href').rsplit('=')[-1])
     player['Points']=float(player.get('Ranking Points',0))
     return player
+
+def get_player(player_id):
+    return None
 
 def get_rankings():
     ranking_url="http://www.owgr.com/ranking"
