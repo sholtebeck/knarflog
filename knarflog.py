@@ -1,10 +1,8 @@
 # Get OWGR Results
 from bs4 import BeautifulSoup
-import simplejson as json
 import urllib2
 
-# Get Players from File
-#names = [line.strip() for line in open("players.txt", 'r')]
+# Handler for string values to ASCII or integer
 def xstr(string):
     if string is None:
         return None 
@@ -26,6 +24,9 @@ def get_picks():
     'Rory McIlroy': 'Steve', 'Sergio Garcia': 'Mark', 'Stephen Gallacher': 'Steve', 'Steve Stricker':'Steve',
     'Tiger Woods': 'Steve','Webb Simpson': 'Mark', 'Zach Johnson': 'Steve'
     }
+    # initialize counter for each user
+    for user in list(set(picks.values())):
+        picks[user]={'Picks':[],'Count':0,'Total':0.0,'Points':0.0 }
     return picks
 
 def get_rank(position):
@@ -41,17 +42,17 @@ def soup_results(url):
     soup = BeautifulSoup(page.read())
     return soup
 
-
 def event_headers(soup):
     headers={}
     if soup.title.string:
         headers['title']=str(soup.title.string)
     headers['url']=str(soup.find('form').get('action'))
-    headers['id']=headers['url'].split('=')[1]
+    if headers['url'].find('=')>0:
+        headers['id']=headers['url'].split('=')[1]
     headers['name']=str(soup.find('h2').string)
     headers['time']=str(soup.find('time').string)
-    headers['week']=headers['time'][-2:]
-    headers['columns']=[str(column.string) for column in soup.find('thead').findAll('th')]
+    headers['week']=headers['name'][-2:]
+    headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
     return headers
 
 def event_results(row, keys):
@@ -87,21 +88,29 @@ def player_results(row, keys):
     return player
 
 def get_rankings():
-    skip_picks=get_picks()
     ranking_url="http://www.owgr.com/ranking"
-    page=soup_results(ranking_url)
-    rankings=[]
-    for row in page.findAll('tr')[:50]:
+    soup=soup_results(ranking_url)
+    picks=get_picks()
+    rankings=[event_headers(soup)]
+    for row in soup.findAll('tr')[1:51]:
         player=player_rankings(row)
-        if player.get('Name') in skip_picks.keys():
-            player['Picker']=skip_picks[player.get('Name')]
-            rankings.append(player)
+        player_name=player.get('Name')
+        if player_name in picks.keys():
+            picker=picks[player_name]
+            player['Picker']=picker
+            if picks[picker]['Count']<15:
+                picks[picker]['Picks'].append(player_name)
+                picks[picker]['Total']+=float(player['Total'])
+                picks[picker]['Points']+=round(player['Points'],2)
+                picks[picker]['Count']+=1
+        rankings.append(player)
+    # append totals to the end
+    rankings.append({key:value for key,value in picks.iteritems() if key in picks.values()})
     return rankings
 
 def get_results(event_id):
-    url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
-    page=urllib2.urlopen(url)
-    soup = BeautifulSoup(page.read())
+    event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
+    soup=soup_results(event_url)
     headers=event_headers(soup)
     keys=headers.get('columns')
     players=[headers]
@@ -114,9 +123,8 @@ def get_results(event_id):
     return players
 
 def get_majors(year):
-    url='http://www.owgr.com/en/Events.aspx?year='+str(year)
-    page=urllib2.urlopen(url)
-    soup = BeautifulSoup(page.read())
+    events_url='http://www.owgr.com/en/Events.aspx?year='+str(year)
+    soup = soup_results(events_url)
     headers=event_headers(soup)
     keys=headers.get('columns')[:6]
     events=[]
@@ -127,13 +135,13 @@ def get_majors(year):
                  events.append(event)
     return events
 
-def write_majors(year):
-    events=get_majors(year)
-    for event in events:
-        print event.get('event_id'), event.get('Event Name')
-        results=get_results(event.get('event_id'))
-        event['Results']=results
-    json.dump(events,open(str(year)+'.json','wb'))
+#def write_majors(year):
+#    events=get_majors(year)
+#    for event in events:
+#        print event.get('event_id'), event.get('Event Name')
+#        results=get_results(event.get('event_id'))
+#        event['Results']=results
+#    json.dump(events,open(str(year)+'.json','wb'))
 
     
 
