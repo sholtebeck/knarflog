@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from google.appengine.api import memcache, users
-import knarflog
+import knarflog,datetime,json,models
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -9,9 +9,11 @@ app.config['DEBUG'] = True
 # the App Engine WSGI application server.
 def log_inorout():
     # check for login
+    names={'sholtebeck':'Steve','mholtebeck':'Mark'}
     log={'user':'dude', 'url':users.create_login_url(request.url), 'url_link': 'Login' }
     if users.get_current_user():
-        log['user'] = users.get_current_user().nickname()
+        nickname=users.get_current_user().nickname()
+        log['user'] = user = names.get(nickname,nickname)
         log['url'] = users.create_logout_url(request.url)
         log['url_link'] = 'Logout'
     return log 
@@ -25,11 +27,18 @@ def getPicks():
         picks=knarflog.get_picks()
     return picks   
 
-def getRankings():
+def getRankings(week_id=models.current_week()):
     rankings = memcache.get('rankings')
+    if rankings:
+        rankings[0]['source']='memcache'
+        models.put_rankings(rankings)        
+    if not rankings:
+        rankings = models.get_rankings(week_id)
     if not rankings:
         rankings=knarflog.get_rankings()
-        memcache.add('rankings', rankings)
+        rankings[0]['source']='web'
+        models.put_rankings(rankings)
+    memcache.add('rankings', rankings)
     return rankings   
 
 @app.route('/')
@@ -53,9 +62,15 @@ def get_pick(pick_key):
     return jsonify({pick_key: pick})
 
 @app.route('/api/rankings', methods=['GET'])
-def rankings():
+def api_rankings():
     rankings = getRankings()
     return jsonify({'headers': rankings[0],'players': rankings[1:50], 'pickers': rankings[-1].values() })
+
+@app.route('/rankings')
+def ranking():
+    picks=getRankings()[-1].get('Mark')
+    return render_template('ranking.html', title='ranking', pick=picks, log=log_inorout())
+
 
 @app.errorhandler(404)
 def page_not_found(e):
