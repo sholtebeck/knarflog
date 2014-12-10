@@ -1,21 +1,22 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, redirect, request
 from google.appengine.api import memcache, users
 import knarflog,datetime,json,models
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+default_url='/app/index.html'
 
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
-def log_inorout():
+def logon_info():
     # check for login
     names={'sholtebeck':'Steve','mholtebeck':'Mark'}
-    log={'user':'dude', 'url':users.create_login_url(request.url), 'url_link': 'Login' }
+    log={'nickname':'guest', 'url_link':users.create_login_url(request.url), 'url_title': 'Login' }
     if users.get_current_user():
-        nickname=users.get_current_user().nickname()
-        log['user'] = user = names.get(nickname,nickname)
-        log['url'] = users.create_logout_url(request.url)
-        log['url_link'] = 'Logout'
+        log['nickname']=nickname=users.get_current_user().nickname()
+        log['name'] = names.get(nickname,nickname)
+        log['url_link'] = users.create_logout_url(request.url)
+        log['url_title'] = 'Logout'
     return log 
 
 # Routine to fetch the information
@@ -43,12 +44,12 @@ def getRankings(week_id=models.current_week()):
 
 @app.route('/')
 def hello():
-    """Return a friendly HTTP greeting."""
-    return render_template('hello.html', title='hello', log=log_inorout())
+    """Redirect to default url"""
+    return redirect(default_url, code=302)
 
 @app.route('/about')
 def about():
-    return render_template('about.html', title='about', log=log_inorout())
+    return render_template('about.html', title='about', log=logon_info())
 
 @app.route('/api/picks', methods=['GET'])
 def picks():
@@ -65,11 +66,19 @@ def get_pick(pick_key):
 def api_rankings():
     rankings = getRankings()
     return jsonify({'headers': rankings[0],'players': rankings[1:50], 'pickers': rankings[-1].values() })
+    
+@app.route('/api/user', methods=['GET'])
+def get_user():
+    current_user=logon_info()
+    #hack to fix the caller url to redirect to the default page
+    current_user['url_link']=current_user['url_link'].replace('/api/user',default_url)
+    return jsonify({'user':current_user })
+    
 
 @app.route('/rankings')
 def ranking():
     picks=getRankings()[-1].get('Mark')
-    return render_template('ranking.html', title='ranking', pick=picks, log=log_inorout())
+    return render_template('ranking.html', title='ranking', pick=picks, log=logon_info())
 
 
 @app.errorhandler(404)

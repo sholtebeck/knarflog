@@ -11,7 +11,7 @@
   <script src="js/controllers.js"></script>
 </head>
 <body ng-controller="playersController">
-   Search: <input ng-model="query">
+   Search: <input ng-model="query">   Logged in as {{ user.name }} <a href="{{ user.url_link }}">{{ user.url_title }}</a>
   <p>
   <table>
     <thead>
@@ -21,7 +21,7 @@
           <th><a href="#" ng-click="orderProp='-Avg'">Points(Avg)</a></th>	
           <th><a href="#" ng-click="orderProp='-Total'">Points(Total)</a></th>
           <th><a href="#" ng-click="orderProp='Rank'">World Rank</a></th>
-          <th><a href="#" ng-click="orderProp='-Points'">Points({{players[0].Year}} )</a></th>
+          <th><a href="#" ng-click="orderProp='-Points'">Points({{year}} )</a></th>
           <th><a href="#" ng-click="orderProp='Picker'">Picked-By</a></th>
           </tr>
     </thead>
@@ -37,18 +37,18 @@
       </tr>
    </tbody>
   </table>
-<p>
- <table>
+  <P></P>
+    <table>
     <thead>
       <tr><th>Rank</th>
           <th>Name</th>	
           <th>Count</a></th>	
           <th>Total</th>
           <th>Points</th>
-        </tr>
+         </tr>
     </thead>
    <tbody>
-       <tr ng-repeat="picker in pickers | orderBy:-Points">
+       <tr ng-repeat="picker in pickers | orderBy:'-Points'">
         <td>{{$index + 1}}</td>
         <td>{{picker.Name}}</td>
         <td>{{picker.Count}}</td>
@@ -57,6 +57,5 @@
       </tr>   
     </tbody>
   </table>
-
 </body>
 </html>

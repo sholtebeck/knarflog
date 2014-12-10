@@ -9,7 +9,11 @@ knarflog.controller('playersController', ['$scope', '$http',
       $scope.players = data.players;
       $scope.pickers = data.pickers;
     });
-
+    $http.get('/api/user').success(function(data) {
+      $scope.user = data.user;
+    });      
+    
     $scope.orderProp = '-Points';
+    $scope.year = new Date().getFullYear();
   }]);
 
