@@ -28,7 +28,6 @@ def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
         rankings = ranking.rankings_json
-        rankings[0]['source']='datastore'
     return rankings
 
 def put_rankings(rankings):

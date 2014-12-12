@@ -11,7 +11,7 @@
   <script src="js/controllers.js"></script>
 </head>
 <body ng-controller="playersController">
-   Search: <input ng-model="query">   Logged in as {{ user.name }} <a href="{{ user.url_link }}">{{ user.url_title }}</a>
+   Search: <input ng-model="query">   <span ng-if="user.name">Logged in as {{ user.name }}</span> <a href="{{ user.url_link }}">{{ user.url_title }}</a>
   <p>
   <table>
     <thead>

@@ -31,13 +31,11 @@ def getPicks():
 def getRankings(week_id=models.current_week()):
     rankings = memcache.get('rankings')
     if rankings:
-        rankings[0]['source']='memcache'
         models.put_rankings(rankings)        
     if not rankings:
         rankings = models.get_rankings(week_id)
     if not rankings:
         rankings=knarflog.get_rankings()
-        rankings[0]['source']='web'
         models.put_rankings(rankings)
     memcache.add('rankings', rankings)
     return rankings   
