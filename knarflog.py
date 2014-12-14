@@ -98,21 +98,27 @@ def get_rankings():
     ranking_url="http://www.owgr.com/ranking"
     soup=soup_results(ranking_url)
     picks=get_picks()
+    picks['Available']={'Count':0, 'Picks':[] }
     rankings=[event_headers(soup)]
     for row in soup.findAll('tr')[1:51]:
         player=player_rankings(row)
         player_name=player.get('Name')
         if player_name in picks.keys():
             picker=picks[player_name]
+            picks[picker]['Picks'].append(player_name)
+            picks[picker]['Count']+=1
             player['Picker']=picker
-            if picks[picker]['Count']<15:
-                picks[picker]['Picks'].append(player_name)
+            player['Pickno']=picks[picker]['Count']
+            if picks[picker]['Count']<12:
                 picks[picker]['Total']+=float(player['Total'])
                 picks[picker]['Points']+=round(player['Points'],2)
-                picks[picker]['Count']+=1
+        else:
+            picks['Available']['Picks'].append(player_name)
+            picks['Available']['Count']+=1           
         rankings.append(player)
     # append totals to the end
     rankings.append({key:value for key,value in picks.iteritems() if key in picks.values()})
+    rankings[-1]['Available']=picks['Available']
     return rankings
 
 def get_results(event_id):
