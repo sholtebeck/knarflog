@@ -63,7 +63,7 @@ def get_pick(pick_key):
 @app.route('/api/rankings', methods=['GET'])
 def api_rankings():
     rankings = getRankings()
-    return jsonify({'headers': rankings[0],'players': rankings[1:50], 'pickers': rankings[-1].values() })
+    return jsonify({'headers': rankings[0],'players': rankings[1:100], 'pickers': rankings[-1].values() })
     
 @app.route('/api/user', methods=['GET'])
 def get_user():

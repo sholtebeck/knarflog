@@ -13,9 +13,9 @@ class Ranking(ndb.Model):
     rankings_json = ndb.JsonProperty()
     
 class Picker(ndb.Model):
-    name = ndb.StringProperty(required=True)
-    points = ndb.FloatProperty()
     picks = ndb.StringProperty(repeated=True)
+    count = ndb.IntegerProperty()
+    points = ndb.FloatProperty()
 
 def current_week():
     now=datetime.datetime.now()
@@ -30,6 +30,13 @@ def get_rankings(week_id=current_week()):
         rankings = None
     return rankings
 
+# put picker information from rankings
+def put_pickers(pickdict):
+    for pickey in pickdict.keys():
+        pickval=pickdict[pickey]
+        picker=Picker(id=pickey, count=pickval.get('Count'),picks=pickval.get('Picks'), points=pickval.get('Points',0.0))  
+        picker.put()
+
 def put_rankings(rankings):
     week_no = int(current_week())
     ranking=Ranking(id=week_no)
@@ -37,11 +44,6 @@ def put_rankings(rankings):
     ranking.week_date=rankings[0].get('date')
     ranking.rankings_json=rankings
     ranking.put()
-
-# write picker info
-def put_pickers(pickdict):
-    pickers=[Picker(id=pickey['Name'],name=pickey['Name'],picks=pickey['Picks'],points=pickey['Points']) for pickey in pickdict.values()]
-    ndb.put_multi(pickers)
-
-    
+    put_pickers(rankings[-1])
+        
 
