@@ -20,14 +20,6 @@ def logon_info():
     return log 
 
 # Routine to fetch the information
-def getPicks():
-    rankings = memcache.get('rankings')
-    if rankings:
-        picks=rankings[-1]
-    else:
-        picks=knarflog.get_picks()
-    return picks   
-
 def getRankings(week_id=models.current_week()):
     rankings = memcache.get('rankings')
     if rankings:
@@ -39,6 +31,14 @@ def getRankings(week_id=models.current_week()):
         models.put_rankings(rankings)
     memcache.add('rankings', rankings)
     return rankings   
+
+def getPicks():
+    rankings = getRankings()
+    if rankings:
+        picks=rankings[-1]
+    else:
+        picks=knarflog.get_picks()
+    return picks   
 
 @app.route('/')
 def hello():
@@ -77,7 +77,6 @@ def get_user():
 def ranking():
     picks=getRankings()[-1].get('Mark')
     return render_template('ranking.html', title='ranking', pick=picks, log=logon_info())
-
 
 @app.errorhandler(404)
 def page_not_found(e):
