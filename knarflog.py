@@ -105,11 +105,11 @@ def get_rankings():
         player_name=player.get('Name')
         if player_name in picks.keys():
             picker=picks[player_name]
-            picks[picker]['Picks'].append(player_name)
-            picks[picker]['Count']+=1
             player['Picker']=picker
             player['Pickno']=picks[picker]['Count']
-            if picks[picker]['Count']<12:
+            if picks[picker]['Count']<15:
+                picks[picker]['Picks'].append(player_name)
+                picks[picker]['Count']+=1
                 picks[picker]['Total']+=float(player['Total'])
                 picks[picker]['Points']+=round(player['Points'],2)
         else:
