@@ -100,7 +100,7 @@ def get_rankings():
     picks=get_picks()
     picks['Available']={'Count':0, 'Picks':[] }
     rankings=[event_headers(soup)]
-    for row in soup.findAll('tr')[1:51]:
+    for row in soup.findAll('tr'):
         player=player_rankings(row)
         player_name=player.get('Name')
         if player_name in picks.keys():
@@ -113,11 +113,13 @@ def get_rankings():
                 picks[picker]['Total']+=float(player['Total'])
                 picks[picker]['Points']+=round(player['Points'],2)
         else:
-            picks['Available']['Picks'].append(player_name)
-            picks['Available']['Count']+=1           
+            if player_name:
+                picks['Available']['Picks'].append(player_name)
+                picks['Available']['Count']+=1           
         rankings.append(player)
     # append totals to the end
     rankings.append({key:value for key,value in picks.iteritems() if key in picks.values()})
+    picks['Available']['Picks'].sort()
     rankings[-1]['Available']=picks['Available']
     return rankings
 
