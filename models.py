@@ -22,6 +22,10 @@ def current_week():
     this_week=100*(now.year-2000)+now.isocalendar()[1]-1
     return int(this_week) 
 
+def get_picks(picker):
+    picker=Picker.get_by_id(picker)
+    return picker.picks
+
 def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
