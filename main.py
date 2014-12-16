@@ -74,14 +74,14 @@ def my_picks():
 @app.route('/api/rankings', methods=['GET'])
 def api_rankings():
     rankings = getRankings()
-    return jsonify({'headers': rankings[0],'players': rankings[1:100], 'pickers': rankings[-1].values() })
+    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
 def api_week_rankings(week_id):
-    rankings = getRankings(week_id)
-    return jsonify({'headers': rankings[0],'players': rankings[1:100], 'pickers': rankings[-1].values() })
+    # pull direct from the datastore
+    rankings = models.get_rankings(week_id)
+    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
-    
 @app.route('/api/user', methods=['GET'])
 def get_user():
     current_user=logon_info()
