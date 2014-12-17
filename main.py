@@ -79,7 +79,7 @@ def api_rankings():
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
 def api_week_rankings(week_id):
     # pull direct from the datastore
-    rankings = models.get_rankings(week_id)
+    rankings = getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
 @app.route('/api/user', methods=['GET'])
