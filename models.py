@@ -22,6 +22,22 @@ def current_week():
     this_week=100*(now.year-2000)+now.isocalendar()[1]-1
     return int(this_week) 
 
+def add_player(picker,player):
+    picker=Picker.get_by_id(picker)
+    if player not in picker.picks:
+        picker.picks.append(player)
+        picker.count+=1
+        picker.put()
+    return True
+
+def drop_player(picker,player):
+    picker=Picker.get_by_id(picker)
+    if player in picker.picks:
+        picker.picks.remove(player)
+        picker.count-=1
+        picker.put()
+    return True
+
 def get_picks(picker):
     picker=Picker.get_by_id(picker)
     return picker.picks

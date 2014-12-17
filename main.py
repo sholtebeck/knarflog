@@ -5,6 +5,7 @@ import knarflog,datetime,json,models
 app = Flask(__name__)
 app.config['DEBUG'] = True
 default_url='/app/index.html'
+picks_url='/app/picks.html'
 
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
@@ -22,6 +23,10 @@ def logon_info():
     return log 
 
 # Routine to fetch the information
+def get_current_user():
+    current_user=logon_info()
+    return current_user.get('name')
+
 def getRankings(week_id=models.current_week()):
     rankings = memcache.get('rankings:'+str(week_id))
     if rankings:
@@ -51,6 +56,22 @@ def hello():
 @app.route('/about')
 def about():
     return render_template('about.html', title='about', log=logon_info())
+
+@app.route('/player/add', methods=['POST'])
+def player_add():
+    picker=get_current_user()
+    player=request.form('player')
+    models.add_player(picker,player)
+    models.drop_player('Available',player)
+    return redirect(picks_url, code=302)
+
+@app.route('/player/drop', methods=['POST'])
+def player_drop():
+    picker=get_current_user()
+    player=request.form('player')
+    models.drop_player(picker,player)
+    models.add_player('Available',player)
+    return redirect(picks_url, code=302)
 
 @app.route('/api/picks', methods=['GET'])
 def picks():
