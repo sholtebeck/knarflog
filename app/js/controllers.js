@@ -2,6 +2,41 @@
 
 /* Controllers */
 var knarflog = angular.module('knarflog', []);
+  knarflog.controller('picksController', ['$scope', '$http',
+  function($scope, $http) {
+    $http.get('/api/mypicks').success(function(data) {
+      $scope.picks = data.picks
+    });
+    
+     $scope.addPlayer = function()
+    {
+      alert("adding "+ this.player);
+      $http.post("/player/add", { player: this.player })
+      .success(function(data, status, headers, config) {
+                    if (data.success) {
+                          $http.get('/api/mypicks').success(function(data) 
+                          {
+                            $scope.picks = data.picks
+                            });
+                            } 
+                        }).error(function(data, status, headers, config) {});
+    };   
+    
+    $scope.dropPlayer = function()
+    {
+      alert("dropping "+ this.player);
+      $http.post("/player/drop", { player: this.player })
+      .success(function(data, status, headers, config) {
+                    if (data.success) {
+                          $http.get('/api/mypicks').success(function(data) 
+                          {
+                            $scope.picks = data.picks
+                            });
+                            } 
+                        }).error(function(data, status, headers, config) {});
+    };
+  }]);
+  
 knarflog.controller('playersController', ['$scope', '$http',
   function($scope, $http) {
     $http.get('/api/rankings').success(function(data) {
