@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, redirect, request
+from flask import Flask, abort,jsonify, render_template, redirect, request
 from google.appengine.api import memcache, users
 import knarflog,datetime,json,models
 
@@ -43,8 +43,6 @@ def getPicks(username=None):
     picks = memcache.get('picks:'+username)
     if not picks:
         picks=models.get_picks(username)
-    if not picks:
-        picks=knarflog.get_picks()[username]
     memcache.add('picks:'+username,picks)
     return picks   
 
@@ -60,24 +58,30 @@ def about():
 @app.route('/player/add', methods=['POST'])
 def player_add():
     picker=get_current_user()
-    player=request.form('player')
-    models.add_player(picker,player)
-    models.drop_player('Available',player)
-    return redirect(picks_url, code=302)
+    player=json.loads(request.data).get('player')
+    picks=models.add_player(picker,player)
+    memcache.add('picks:'+picker,picks)
+    picks=models.drop_player('Available',player)
+    memcache.add('picks:Available',picks.sort())
+    return jsonify({'success':True})
 
 @app.route('/player/drop', methods=['POST'])
 def player_drop():
+    if not request.json or not 'player' in request.json:
+        abort(400)
     picker=get_current_user()
-    player=request.form('player')
-    models.drop_player(picker,player)
-    models.add_player('Available',player)
-    return redirect(picks_url, code=302)
+    player=request.json.get('player')
+    picks=models.drop_player(picker,player)
+    memcache.add('picks:'+picker,picks)
+    picks=models.add_player('Available',player)
+    memcache.add('picks:Available',picks.sort())
+    return jsonify({'success':True})
 
 @app.route('/api/picks', methods=['GET'])
 def picks():
-    return jsonify({'picks': getRankings()[-1]})
+    return jsonify({'picks': getPicks()})
 
-@app.route('/api/picks/me', methods=['GET'])
+@app.route('/api/mypicks', methods=['GET'])
 def my_picks():
     current_user=logon_info()
     username=current_user.get('name')
@@ -86,9 +90,11 @@ def my_picks():
     pick['Count']=len(pick['Picks'])
     if pick['Count']<15:
         pick['Action']='Add'
+        pick['Submit']='/player/add'
         pick['Players']=getPicks('Available')
     else:
         pick['Action']='Drop'
+        pick['Submit']='/player/drop'
         pick['Players']=pick['Picks']
     return jsonify({'picks': pick})
 
@@ -107,12 +113,6 @@ def api_week_rankings(week_id):
 def get_user():
     current_user=logon_info()
     return jsonify({'user':current_user })
-    
-
-@app.route('/rankings')
-def ranking():
-    picks=getRankings()[-1].get('Mark')
-    return render_template('ranking.html', title='ranking', pick=picks, log=logon_info())
 
 @app.errorhandler(404)
 def page_not_found(e):

@@ -26,9 +26,12 @@ def add_player(picker,player):
     picker=Picker.get_by_id(picker)
     if player not in picker.picks:
         picker.picks.append(player)
+        # sort available picks by name
+        if picker=='Available':
+            picker.picks.sort()  
         picker.count+=1
         picker.put()
-    return True
+    return picker.picks
 
 def drop_player(picker,player):
     picker=Picker.get_by_id(picker)
@@ -36,7 +39,7 @@ def drop_player(picker,player):
         picker.picks.remove(player)
         picker.count-=1
         picker.put()
-    return True
+    return picker.picks
 
 def get_picks(picker):
     picker=Picker.get_by_id(picker)
