@@ -6,7 +6,7 @@ import logging
 app = Flask(__name__)
 app.config['DEBUG'] = True
 default_url='/app/index.html'
-picks_url='/app/picks.html'
+picks_url='/picks'
 #logging.getLogger().setLevel(logging.DEBUG)
 
 # Note: We don't need to call run() since our application is embedded within
@@ -39,16 +39,28 @@ def getRankings(week_id=models.current_week()):
     memcache.add('rankings:'+str(week_id), rankings)
     return rankings   
 
-def getPicks(username=None):
-    picks = memcache.get('picks')
-    if not picks:
-        picks=models.get_picks(username)
+def myPicks(username):
+    picks=models.get_picks(username)
     return picks   
 
+def getPicks():
+    picks = memcache.get('picks')
+    if not picks:
+        picks=getRankings()[-1]
+        for picker in picks.keys():
+            picks[picker]['Picks']=myPicks(picker)
+            picks[picker]['Count']=len(picks[picker]['Picks'])
+        memcache.add('picks',picks)
+    return picks   
+
+    
 @app.route('/')
-def hello():
+def main():
     """Redirect to default url"""
-    return redirect(default_url, code=302)
+    if users.get_current_user():
+        return redirect(default_url, code=302)
+    else:
+        return redirect(users.create_login_url(default_url), code=302)
 
 @app.route('/about')
 def about():
@@ -56,12 +68,12 @@ def about():
 
 @app.route('/player/add', methods=['POST'])
 def player_add():
+    if not request.json or not 'player' in request.json:
+        abort(400)
     picker=get_current_user()
     player=json.loads(request.data).get('player')
     picks=models.add_player(picker,player)
-    memcache.add('picks:'+picker,picks)
     picks=models.drop_player('Available',player)
-    memcache.add('picks:Available',picks.sort())
     return jsonify({'success':True})
 
 @app.route('/player/drop', methods=['POST'])
@@ -82,17 +94,11 @@ def picks():
 def my_picks():
     current_user=logon_info()
     username=current_user.get('name')
-    pick = getRankings()[-1].get(username)
-    pick['Picks'] = getPicks(username)
+    pick = getPicks().get(username)
+    pick['Picks'] = myPicks(username)
     pick['Count']=len(pick['Picks'])
     if pick['Count']<15:
-        pick['Action']='Add'
-        pick['Submit']='/player/add'
-        pick['Players']=getPicks('Available')
-    else:
-        pick['Action']='Drop'
-        pick['Submit']='/player/drop'
-        pick['Players']=pick['Picks']
+        pick['Players']=myPicks('Available')
     return jsonify({'picks': pick})
 
 @app.route('/api/rankings', methods=['GET'])

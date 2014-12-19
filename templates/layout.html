@@ -1,28 +1,13 @@
-<!DOCTYPE html>
 <html>
   <head>
-    {% block head %}{% endblock %}   
-    <strong><link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"></strong>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> 
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+   <link href="/app/app.css" rel="stylesheet">
   </head>
   <body>
-   
-    <header>
-      <div class="container">
-        <h1 class="logo">knarflog-golf rankings</h1>
-    	<strong><nav>
-    	  <ul class="menu">
-            <li><a href="{{ log.url_link}}">{{ log.url_title }}</a></li>
-    	    <li><a href="{{ url_for('ranking') }}">Rankings</a></li>
-   	    <li><a href="{{ url_for('about') }}">About</a></li>
-    	  </ul>
-    	</nav></strong>
-      </div>
-    </header>
-
-    <div class="container">
-      {% block content %}
-      {% endblock %}
-    </div>
-     
+  {% block content %}
+  {% endblock content %}
   </body>
 </html>

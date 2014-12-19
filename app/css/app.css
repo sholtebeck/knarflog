@@ -2,6 +2,7 @@
 
 body {
   font-family: sans-serif;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 table { 
@@ -20,4 +21,8 @@ font-weight: bold; /* Make sure they're bold */
 
 td {
 background: #FAFAFA; /* Lighter grey background */
+}
+
+input, button, select, option, textarea {
+    font-size: 100%;
 }
