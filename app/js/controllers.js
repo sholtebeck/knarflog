@@ -10,7 +10,7 @@ var knarflog = angular.module('knarflog', []);
     
      $scope.addPlayer = function()
     {
-      alert("adding "+ this.player);
+//      alert("adding "+ this.player);
       $http.post("/player/add", { player: this.player })
       .success(function(data, status, headers, config) {
                     if (data.success) {
@@ -24,7 +24,7 @@ var knarflog = angular.module('knarflog', []);
     
     $scope.dropPlayer = function()
     {
-      alert("dropping "+ this.player);
+//      alert("dropping "+ this.player);
       $http.post("/player/drop", { player: this.player })
       .success(function(data, status, headers, config) {
                     if (data.success) {

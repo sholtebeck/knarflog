@@ -28,8 +28,8 @@
       </tr>
       <tr ng-if="picks.Count<15">
         <td>{{picks.Count + 1}}.</td>
-        <td><form ng-submit="addPlayer()"><select ng-model="player"><option ng-repeat="Player in picks.Players" value="{{Player}}">{{Player}}</option></select></td>
-        <td><button type="submit">Pick</button></form>
+        <td><form><select data-ng-model="player" data-ng-options="player for player in picks.Players"></select></td>
+        <td><button ng-click="addPlayer()">Pick</button></form>
      </tr>
     </tbody>
   </table>

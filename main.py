@@ -1,11 +1,13 @@
 from flask import Flask, abort,jsonify, render_template, redirect, request
 from google.appengine.api import memcache, users
 import knarflog,datetime,json,models
+import logging
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
 default_url='/app/index.html'
 picks_url='/app/picks.html'
+#logging.getLogger().setLevel(logging.DEBUG)
 
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
@@ -29,8 +31,6 @@ def get_current_user():
 
 def getRankings(week_id=models.current_week()):
     rankings = memcache.get('rankings:'+str(week_id))
-    if rankings:
-        models.put_rankings(rankings)        
     if not rankings:
         rankings = models.get_rankings(week_id)
     if not rankings:
@@ -40,10 +40,9 @@ def getRankings(week_id=models.current_week()):
     return rankings   
 
 def getPicks(username=None):
-    picks = memcache.get('picks:'+username)
+    picks = memcache.get('picks')
     if not picks:
         picks=models.get_picks(username)
-    memcache.add('picks:'+username,picks)
     return picks   
 
 @app.route('/')
@@ -72,9 +71,7 @@ def player_drop():
     picker=get_current_user()
     player=request.json.get('player')
     picks=models.drop_player(picker,player)
-    memcache.add('picks:'+picker,picks)
     picks=models.add_player('Available',player)
-    memcache.add('picks:Available',picks.sort())
     return jsonify({'success':True})
 
 @app.route('/api/picks', methods=['GET'])
