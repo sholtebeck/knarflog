@@ -11,22 +11,20 @@
   <script src="js/controllers.js"></script>
 </head>
 <body ng-controller="playersController">
-   Search: <input ng-model="query">   <span ng-if="user.name">Logged in as {{ user.name }}</span> <a href="{{ user.url_link }}">{{ user.url_title }}</a>
-  <p>
   <table>
     <thead>
       <tr><th colspan="7">World Golf Rankings for {{headers.date}} (Week {{headers.Week}})</th></tr>
       <tr><th>#</th>
-          <th><a href="#" ng-click="orderProp='Name'">Player Name</a></th>	
-          <th><a href="#" ng-click="orderProp='-Avg'">Points(Avg)</a></th>	
-          <th><a href="#" ng-click="orderProp='-Total'">Points(Total)</a></th>
-          <th><a href="#" ng-click="orderProp='Rank'">World Rank</a></th>
-          <th><a href="#" ng-click="orderProp='-Points'">Points({{year}} )</a></th>
-          <th><a href="#" ng-click="orderProp='Picker'">Picked-By</a></th>
+          <th>Player Name</a></th>	
+          <th>Points(Avg)</a></th>	
+          <th>Points(Total)</a></th>
+          <th>World Rank</a></th>
+          <th>Points({{year}} )</a></th>
+          <th>Picked-By</th>
           </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="player in players | filter:{Name: '!!'}| filter:query | orderBy:orderProp">
+      <tr ng-repeat="player in players | filter:{Picker: '!!'}| orderBy:orderProp">
         <td>{{$index + 1}}.</td>
         <td>{{player.Name}}</td>
         <td>{{player.Avg |number:2}}</td>
