@@ -44,9 +44,10 @@ def drop_player(picker,player):
     else:
         return False
 
-def get_picks(picker):
-    picker=Picker.get_by_id(picker)
-    return picker.picks
+def get_picks(picker_name):
+    picker=Picker.get_by_id(picker_name)
+    picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks}
+    return picks
 
 def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)

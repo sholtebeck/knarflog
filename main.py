@@ -48,8 +48,7 @@ def getPicks():
     if not picks:
         picks=getRankings()[-1]
         for picker in picks.keys():
-            picks[picker]['Picks']=myPicks(picker)
-            picks[picker]['Count']=len(picks[picker]['Picks'])
+            picks[picker]=myPicks(picker)
         memcache.add('picks',picks)
     return picks   
 
@@ -102,11 +101,9 @@ def picks():
 def my_picks():
     current_user=logon_info()
     username=current_user.get('name')
-    pick = getPicks().get(username)
-    pick['Picks'] = myPicks(username)
-    pick['Count']=len(pick['Picks'])
+    pick=myPicks(username)
     if pick['Count']<15:
-        pick['Available']=sorted(myPicks('Available'))
+        pick['Available']=sorted(myPicks('Available')['Picks'])
     return jsonify({'picks': pick})
 
 @app.route('/api/rankings', methods=['GET'])

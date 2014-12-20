@@ -14,7 +14,7 @@ def xstr(string):
     elif string.isdigit():
         return int(string)
     else:
-        return str(string.encode('ascii','ignore').strip())
+        return string.encode('ascii','ignore').strip()
 
 # json_results -- get results for a url
 def json_results(url):
@@ -35,9 +35,8 @@ def get_picks():
     # initialize counter for each user
     for picker in pickers:
         for player in picks[picker][u'Picks']:
-            picks[xstr(player)]=xstr(picker)
-        picks[picker]['Name']=xstr(picker)
-        picks[picker]['Count']=0
+            picks[player]=picker
+        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0 }
     return picks
 
 def get_rank(position):
