@@ -111,13 +111,14 @@ def get_rankings():
             if picks[picker]['Count']<15:
                 picks[picker]['Picks'].append(player_name)
                 picks[picker]['Count']+=1
-                picks[picker]['Total']+=round(player['Total'],2)
-                picks[picker]['Points']+=round(player['Points'],2)
+                picks[picker]['Total']+=int(player['Total']+0.5)
+                picks[picker]['Points']+=int(player['Points']+0.5)
         else:
             if player_name:
                 picks['Available']['Picks'].append(player_name)
-                picks['Available']['Count']+=1           
-        rankings.append(player)
+                picks['Available']['Count']+=1 
+        if player and player_name:          
+            rankings.append(player)
     # append totals to the end
     rankings.append({key:value for key,value in picks.iteritems() if key in picks.values()})
     picks['Available']['Picks'].sort()
