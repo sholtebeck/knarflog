@@ -126,6 +126,8 @@ td {
 background: #FAFAFA; /* Lighter grey background */
 }
 
-
+select {
+  font-family: inherit;
+}
 
 

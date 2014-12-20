@@ -72,9 +72,13 @@ def player_add():
         abort(400)
     picker=get_current_user()
     player=json.loads(request.data).get('player')
-    picks=models.add_player(picker,player)
-    picks=models.drop_player('Available',player)
-    return jsonify({'success':True})
+    success=models.drop_player('Available',player)
+    if success:
+        picks=models.add_player(picker,player)
+        message="Added "+player
+    else:
+        message=player+ " is no longer available"
+    return jsonify({'success':success,'message':message})
 
 @app.route('/player/drop', methods=['POST'])
 def player_drop():
@@ -82,9 +86,13 @@ def player_drop():
         abort(400)
     picker=get_current_user()
     player=request.json.get('player')
-    picks=models.drop_player(picker,player)
-    picks=models.add_player('Available',player)
-    return jsonify({'success':True})
+    success=models.drop_player(picker,player)
+    if success:
+        picks=models.add_player('Available',player)
+        message="Dropped "+player
+    else:
+        message="Unable to drop "+player    
+    return jsonify({'success':success,'message':message})
 
 @app.route('/api/picks', methods=['GET'])
 def picks():
@@ -98,7 +106,7 @@ def my_picks():
     pick['Picks'] = myPicks(username)
     pick['Count']=len(pick['Picks'])
     if pick['Count']<15:
-        pick['Players']=myPicks('Available')
+        pick['Available']=sorted(myPicks('Available'))
     return jsonify({'picks': pick})
 
 @app.route('/api/rankings', methods=['GET'])

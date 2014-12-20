@@ -13,11 +13,9 @@ var knarflog = angular.module('knarflog', []);
 //      alert("adding "+ this.player);
       $http.post("/player/add", { player: this.player })
       .success(function(data, status, headers, config) {
-                    if (data.success) {
-                          $http.get('/api/mypicks').success(function(data) 
-                          {
-                            $scope.picks = data.picks
-                            });
+                     $scope.message=data.message;
+                     if (data.success) {
+                          $http.get('/api/mypicks').success(function(data)  {   $scope.picks = data.picks });
                             } 
                         }).error(function(data, status, headers, config) {});
     };   
@@ -27,12 +25,10 @@ var knarflog = angular.module('knarflog', []);
 //      alert("dropping "+ this.player);
       $http.post("/player/drop", { player: this.player })
       .success(function(data, status, headers, config) {
-                    if (data.success) {
-                          $http.get('/api/mypicks').success(function(data) 
-                          {
-                            $scope.picks = data.picks
-                            });
-                            } 
+                   $scope.message=data.message;
+                   if (data.success) {
+                           $http.get('/api/mypicks').success(function(data)  {   $scope.picks = data.picks });
+                         } 
                         }).error(function(data, status, headers, config) {});
     };
   }]);
