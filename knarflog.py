@@ -1,9 +1,11 @@
 # Get OWGR Results
 import urllib2
 # External modules (bs4)
+import json
 import sys
 sys.path[0:0] = ['lib']
 from bs4 import BeautifulSoup
+pickers=(u'Mark',u'Steve')
 
 # Handler for string values to ASCII or integer
 def xstr(string):
@@ -14,22 +16,28 @@ def xstr(string):
     else:
         return str(string.encode('ascii','ignore').strip())
 
-# get_picks (currently static: implement as a service)
+# json_results -- get results for a url
+def json_results(url):
+    page=urllib2.urlopen(url)
+    results=json.load(page)
+    return results
+
+# soup_results -- get results for a url
+def soup_results(url):
+    page=urllib2.urlopen(url)
+    soup = BeautifulSoup(page.read())
+    return soup
+
+# get_picks (loaded from api)
 def get_picks():
-    picks={
-    'Adam Scott': 'Steve', 'Bill Haas': 'Steve', 'Billy Horschel': 'Steve', 'Brandt Snedeker': 'Mark', 
-    'Bubba Watson': 'Steve', 'Charl Schwartzel': 'Mark', 'Dustin Johnson': 'Steve', 'Ernie Els': 'Mark',
-    'Graeme McDowell': 'Mark', 'Harris English': 'Mark', 'Jason Day': 'Steve', 'Jason Dufner': 'Mark', 
-    'Jim Furyk': 'Mark', 'Jimmy Walker': 'Steve', 'John Senden': 'Mark', 'Jonas Blixt': 'Steve',
-    'Jordan Spieth': 'Steve', 'Justin Rose': 'Mark', 'Keegan Bradley': 'Mark', 'Lee Westwood': 'Steve', 
-    'Louis Oosthuizen': 'Steve', 'Luke Donald': 'Mark', 'Matt Every': 'Steve', 'Matt Jones': 'Steve', 
-    'Matt Kuchar': 'Mark', 'Patrick Reed': 'Mark', 'Phil Mickelson': 'Mark', 'Rickie Fowler': 'Mark', 
-    'Rory McIlroy': 'Steve', 'Sergio Garcia': 'Mark', 'Stephen Gallacher': 'Steve', 'Steve Stricker':'Steve',
-    'Tiger Woods': 'Steve','Webb Simpson': 'Mark', 'Zach Johnson': 'Steve'
-    }
+    url="http://knarflog.appspot.com/api/picks"
+    picks=json_results(url).get('picks')
     # initialize counter for each user
-    for user in list(set(picks.values())):
-        picks[user]={'Name':user,'Picks':[],'Count':0,'Total':0.0,'Points':0.0 }
+    for picker in pickers:
+        for player in picks[picker][u'Picks']:
+            picks[xstr(player)]=xstr(picker)
+        picks[picker]['Name']=xstr(picker)
+        picks[picker]['Count']=0
     return picks
 
 def get_rank(position):
@@ -38,12 +46,6 @@ def get_rank(position):
     else:
         rank = int(position.replace('T',''))
         return rank
-
-# soup_results -- get results for a url
-def soup_results(url):
-    page=urllib2.urlopen(url)
-    soup = BeautifulSoup(page.read())
-    return soup
 
 def event_headers(soup):
     headers={}
@@ -76,8 +78,8 @@ def player_rankings(row):
         player={'Rank': int(cols[0].text), 'Name': player_name }
         player['ID']=int(row.find('a').get('href').rsplit('=')[-1])
         player['Ctry']= xstr(cols[3].img.get('title'))
-        player['Avg']=float(cols[5].text)
-        player['Total']=float(cols[6].text)
+        player['Avg']=round(float(cols[5].text),2)
+        player['Total']=round(float(cols[6].text),2)
         player['Events']=int(cols[7].text)
         player['Points']=float(cols[9].text) 
     return player
@@ -95,10 +97,10 @@ def get_player(player_id):
     return None
 
 def get_rankings():
-    ranking_url="http://www.owgr.com/ranking"
-    soup=soup_results(ranking_url)
     picks=get_picks()
     picks['Available']={'Count':0, 'Picks':[] }
+    ranking_url="http://www.owgr.com/ranking"
+    soup=soup_results(ranking_url)
     rankings=[event_headers(soup)]
     for row in soup.findAll('tr'):
         player=player_rankings(row)
@@ -110,7 +112,7 @@ def get_rankings():
             if picks[picker]['Count']<15:
                 picks[picker]['Picks'].append(player_name)
                 picks[picker]['Count']+=1
-                picks[picker]['Total']+=float(player['Total'])
+                picks[picker]['Total']+=round(player['Total'],2)
                 picks[picker]['Points']+=round(player['Points'],2)
         else:
             if player_name:
