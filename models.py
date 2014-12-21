@@ -17,10 +17,18 @@ class Picker(ndb.Model):
     count = ndb.IntegerProperty()
     points = ndb.FloatProperty()
 
+# Current Week (YYWW)
 def current_week():
     now=datetime.datetime.now()
     this_week=100*(now.year-2000)+now.isocalendar()[1]-1
     return int(this_week) 
+
+# Current Day of the week (0=Mon,1=Tue,..,6=Sun)
+def current_dotw():
+    return datetime.datetime.now().weekday()
+
+def current_year():
+    return datetime.datetime.now().year
 
 def add_player(picker,player):
     picker=Picker.get_by_id(picker)
@@ -46,7 +54,7 @@ def drop_player(picker,player):
 
 def get_picks(picker_name):
     picker=Picker.get_by_id(picker_name)
-    picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks}
+    picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks,'Points':picker.points}
     return picks
 
 def get_rankings(week_id=current_week()):

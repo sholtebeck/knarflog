@@ -5,7 +5,9 @@ import json
 import sys
 sys.path[0:0] = ['lib']
 from bs4 import BeautifulSoup
+MAXPICKS=12
 pickers=(u'Mark',u'Steve')
+
 
 # Handler for string values to ASCII or integer
 def xstr(string):
@@ -108,7 +110,7 @@ def get_rankings():
             picker=picks[player_name]
             player['Picker']=picker
             player['Pickno']=picks[picker]['Count']
-            if picks[picker]['Count']<15:
+            if picks[picker]['Count']<MAXPICKS:
                 picks[picker]['Picks'].append(player_name)
                 picks[picker]['Count']+=1
                 picks[picker]['Total']+=int(player['Total']+0.5)

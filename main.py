@@ -1,6 +1,6 @@
-from flask import Flask, abort,jsonify, render_template, redirect, request
+from flask import Flask, abort,json,jsonify, render_template, redirect, request
 from google.appengine.api import memcache, users
-import knarflog,datetime,json,models
+import knarflog,datetime,models
 import logging
 
 app = Flask(__name__)
@@ -65,34 +65,6 @@ def main():
 def about():
     return render_template('about.html', title='about', log=logon_info())
 
-@app.route('/player/add', methods=['POST'])
-def player_add():
-    if not request.json or not 'player' in request.json:
-        abort(400)
-    picker=get_current_user()
-    player=json.loads(request.data).get('player')
-    success=models.drop_player('Available',player)
-    if success:
-        picks=models.add_player(picker,player)
-        message="Added "+player
-    else:
-        message=player+ " is no longer available"
-    return jsonify({'success':success,'message':message})
-
-@app.route('/player/drop', methods=['POST'])
-def player_drop():
-    if not request.json or not 'player' in request.json:
-        abort(400)
-    picker=get_current_user()
-    player=request.json.get('player')
-    success=models.drop_player(picker,player)
-    if success:
-        picks=models.add_player('Available',player)
-        message="Dropped "+player
-    else:
-        message="Unable to drop "+player    
-    return jsonify({'success':success,'message':message})
-
 @app.route('/api/picks', methods=['GET'])
 def picks():
     return jsonify({'picks': getPicks()})
@@ -102,7 +74,8 @@ def my_picks():
     current_user=logon_info()
     username=current_user.get('name')
     pick=myPicks(username)
-    if pick['Count']<15:
+    pick['Max']=knarflog.MAXPICKS
+    if pick['Count']<pick['Max'] and models.current_dotw()<4:
         pick['Available']=sorted(myPicks('Available')['Picks'])
     return jsonify({'picks': pick})
 
@@ -121,6 +94,47 @@ def api_week_rankings(week_id):
 def get_user():
     current_user=logon_info()
     return jsonify({'user':current_user })
+
+@app.route('/player/add', methods=['POST'])
+def player_add():
+    if not request.json or not 'player' in request.json:
+        abort(400)
+    picker=get_current_user()
+    player=json.loads(request.data).get('player')
+    success=models.drop_player('Available',player)
+    if success:
+        picks=models.add_player(picker,player)
+        memcache.delete('picks')
+        message="Added "+player
+    else:
+        message=player+ " is no longer available"
+    return jsonify({'success':success,'message':message})
+
+@app.route('/player/drop', methods=['POST'])
+def player_drop():
+    if not request.json or not 'player' in request.json:
+        abort(400)
+    picker=get_current_user()
+    player=request.json.get('player')
+    success=models.drop_player(picker,player)
+    if success:
+        picks=models.add_player('Available',player)
+        memcache.delete('picks')
+        message="Dropped "+player
+    else:
+        message="Unable to drop "+player    
+    return jsonify({'success':success,'message':message})
+
+@app.route('/ranking', methods=['GET'])
+def ranking():
+    rankings = getRankings()
+    header=rankings[0]
+    header['Year']=models.current_year()
+    players=[player for player in rankings[1:-1] if player.get('Picker')]
+    pickers=[picker for picker in rankings[-1].values() if picker.get('Name')]
+    if pickers[1]['Points']>pickers[0]['Points']:
+        pickers.reverse()
+    return render_template('ranking.html', header=header,players=players,pickers=pickers)
 
 @app.errorhandler(404)
 def page_not_found(e):

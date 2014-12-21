@@ -50,7 +50,7 @@ $(document).ready(function() {
         <td><form ng-submit="dropPlayer()"><input type="hidden" name="player" ng-model="player"><button type="submit" class="btn btn-primary">Drop</button></form>
       </td>
       </tr>
-      <tr ng-if="picks.Count<15">
+      <tr ng-if="picks.Available">
         <td>{{picks.Count + 1}}.</td>
         <td><form><select data-ng-model="player" data-ng-options="player for player in picks.Available"></select></td>
         <td><button ng-click="addPlayer()" class="btn btn-primary">Pick</button></form>
@@ -58,10 +58,10 @@ $(document).ready(function() {
     </tbody>
   </table>
   <p>You have <span ng-bind="picks.Count"></span> picks, 
-    <span ng-if="picks.Count>=15">so you need to drop before picking another player</span> 
+    <span ng-if="picks.Count>=picks.Max">so you need to drop {{picks.Count-picks.Max+1}} before picking another player</span> 
     
-    <span ng-if="picks.Count<15">so you can pick {{15-picks.Count}} more.
-  </span> 
+    <span ng-if="picks.Count<picks.Max">so you can pick {{picks.Max-picks.Count}} more</span>
+    <span ng-if="!picks.Available"> (next week:Mon-Wed). </span>.
     </div>
 </div><!-- #tab1 -->
 

@@ -1,7 +1,59 @@
-{% extends "layout.html" %}
-{% block content %}
-  <div class="jumbo">
-<iframe width='700' height="1400" frameborder='0' src='/app/index.html'></iframe>
-  </div>
-{% endblock %}
-
+<!DOCTYPE html>
+<html lang="en" ng-app="knarflog">
+<head>
+  <title>World Golf Rankings</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body ng-controller="playersController">
+  <table>
+    <thead>
+      <tr><th colspan="7">World Golf Rankings for {{header.date}} (Week {{header.Week}})</th></tr>
+      <tr><th>#</th>
+          <th>Player Name</a></th>	
+          <th>Points(Avg)</a></th>	
+          <th>Points(Total)</a></th>
+          <th>World Rank</a></th>
+          <th>Points({{header.Year}} )</a></th>
+          <th>Picked-By</th>
+          </tr>
+    </thead>
+    <tbody>
+{% set index=1 %}
+{% for player in players %}
+      <tr>
+        <td>{{index}}{% set index=index+1 %}</td>
+        <td>{{player.Name}}</td>
+        <td>{{player.Avg}}</td>
+        <td>{{player.Total}}</td>
+        <td>{{player.Rank}}</td>
+        <td>{{player.Points}}</td>
+        <td>{{player.Picker}}</td>
+      </tr>
+{% endfor %}
+   </tbody>
+  </table>
+  <P></P>
+    <table>
+    <thead>
+      <tr><th>Rank</th>
+          <th>Picker</th>	
+          <th>Count</a></th>	
+          <th>Total</th>
+          <th>Points</th>
+         </tr>
+    </thead>
+   <tbody>
+{% set index=1 %}
+{% for picker in pickers %}
+       <tr>
+        <td>{{index}}{% set index=index+1 %}</td>
+        <td>{{picker.Name}}</td>
+        <td>{{picker.Count}}</td>
+        <td>{{picker.Total}}</td>
+        <td>{{picker.Points}}</td>
+      </tr>
+{% endfor %}   
+    </tbody>
+  </table>
+</body>
+</html>
