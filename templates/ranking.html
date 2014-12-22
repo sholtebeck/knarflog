@@ -23,10 +23,10 @@
       <tr>
         <td>{{index}}{% set index=index+1 %}</td>
         <td>{{player.Name}}</td>
-        <td>{{player.Avg}}</td>
-        <td>{{player.Total}}</td>
+        <td>{{"%.2f"|format(player.Avg)}}</td>
+        <td>{{"%.2f"|format(player.Total)}}</td>
         <td>{{player.Rank}}</td>
-        <td>{{player.Points}}</td>
+        <td>{{"%.2f"|format(player.Points)}}</td>
         <td>{{player.Picker}}</td>
       </tr>
 {% endfor %}
@@ -37,7 +37,7 @@
     <thead>
       <tr><th>Rank</th>
           <th>Picker</th>	
-          <th>Count</a></th>	
+          <th>Picks</a></th>	
           <th>Total</th>
           <th>Points</th>
          </tr>
@@ -50,10 +50,11 @@
         <td>{{picker.Name}}</td>
         <td>{{picker.Count}}</td>
         <td>{{picker.Total}}</td>
-        <td>{{picker.Points}}</td>
+        <td>{{"%.2f"|format(picker.Points)}}</td>
       </tr>
 {% endfor %}   
     </tbody>
   </table>
+<p><a href="http://knarflog.appspot.com">Set picks for next week</a> 
 </body>
 </html>

@@ -66,8 +66,13 @@ def about():
     return render_template('about.html', title='about', log=logon_info())
 
 @app.route('/api/picks', methods=['GET'])
-def picks():
-    return jsonify({'picks': getPicks()})
+@app.route('/api/picks/<picker>', methods=['GET'])
+def picks(picker=None):
+    if picker:
+        picks=myPicks(picker)
+    else:
+        picks=getPicks()
+    return jsonify({'picks': picks})
 
 @app.route('/api/mypicks', methods=['GET'])
 def my_picks():
@@ -126,8 +131,9 @@ def player_drop():
     return jsonify({'success':success,'message':message})
 
 @app.route('/ranking', methods=['GET'])
-def ranking():
-    rankings = getRankings()
+@app.route('/ranking/<int:week_id>', methods=['GET'])
+def ranking(week_id=models.current_week()):
+    rankings = getRankings(week_id)
     header=rankings[0]
     header['Year']=models.current_year()
     players=[player for player in rankings[1:-1] if player.get('Picker')]
