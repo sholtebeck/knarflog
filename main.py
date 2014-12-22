@@ -13,7 +13,7 @@ picks_url='/picks'
 # the App Engine WSGI application server.
 def logon_info():
     # check for login
-    names={'sholtebeck':'Steve','mholtebeck':'Mark'}
+    names={'sholtebeck':'Steve','mholtebeck':'Mark','skipfloguser':'Steve'}
     log={'nickname':'guest', 'url_link':users.create_login_url(request.url), 'url_title': 'Login' }
     if users.get_current_user():
         log['nickname']=nickname=users.get_current_user().nickname()
