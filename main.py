@@ -46,7 +46,7 @@ def myPicks(username):
 def getPicks():
     picks = memcache.get('picks')
     if not picks:
-        picks=getRankings()[-1]
+        picks=getRankings(1451)[-1]
         for picker in picks.keys():
             picks[picker]=myPicks(picker)
         memcache.add('picks',picks)
