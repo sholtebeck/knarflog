@@ -5,6 +5,7 @@ App Engine datastore models for Golf Ranking app
 
 """
 from google.appengine.ext import ndb
+from time import gmtime,strftime
 import datetime
 
 class Ranking(ndb.Model):
@@ -19,8 +20,7 @@ class Picker(ndb.Model):
 
 # Current Week (YYWW)
 def current_week():
-    now=datetime.datetime.now()
-    this_week=100*(now.year-2000)+now.isocalendar()[1]-1
+    this_week=strftime("%y%U",gmtime())
     return int(this_week) 
 
 # Current Day of the week (0=Mon,1=Tue,..,6=Sun)
