@@ -57,6 +57,13 @@ def get_picks(picker_name):
     picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks,'Points':picker.points}
     return picks
 
+def get_picks():
+    picks={}
+    pickers=Picker.query().fetch(3,keys_only=True)
+    for picker in pickers:
+        picks[picker]=get_picks(picker)
+    return picks
+
 def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
