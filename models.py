@@ -53,13 +53,15 @@ def drop_player(picker,player):
         return False
 
 def get_picks(picker_name):
+    picks={'Name': picker_name,'Count': 0,'Picks':[],'Points':0}
     picker=Picker.get_by_id(picker_name)
-    picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks,'Points':picker.points}
+    if picker:
+        picks={'Name': picker_name,'Count': picker.count,'Picks':picker.picks,'Points':picker.points}
     return picks
 
-def get_picks():
+def all_picks():
     picks={}
-    pickers=Picker.query().fetch(3,keys_only=True)
+    pickers=('Available','Mark','Steve')
     for picker in pickers:
         picks[picker]=get_picks(picker)
     return picks

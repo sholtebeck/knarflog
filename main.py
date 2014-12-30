@@ -46,12 +46,9 @@ def myPicks(username):
 def getPicks():
     picks = memcache.get('picks')
     if not picks:
-        picks=getRankings(1400)[-1]
-        for picker in picks.keys():
-            picks[picker]=myPicks(picker)
+        picks=models.all_picks()
         memcache.add('picks',picks)
     return picks   
-
     
 @app.route('/')
 def main():
