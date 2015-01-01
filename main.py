@@ -1,5 +1,5 @@
-from flask import Flask, abort,json,jsonify, render_template, redirect, request
-from google.appengine.api import memcache, users
+from flask import Flask, abort,json,jsonify,render_template, redirect, request
+from google.appengine.api import memcache,taskqueue,users
 import knarflog,datetime,models
 import logging
 
@@ -34,9 +34,10 @@ def getRankings(week_id=models.current_week()):
     if not rankings:
         rankings = models.get_rankings(week_id)
     if not rankings:
-        rankings=knarflog.get_rankings()
-        models.put_rankings(rankings)
-    memcache.add('rankings:'+str(week_id), rankings)
+        taskqueue.add(url='/api/weekly', params={'week_id': week_id })
+        rankings=models.get_rankings(week_id-1)
+    else:
+        memcache.add('rankings:'+str(week_id), rankings)
     return rankings   
 
 def myPicks(username):
@@ -82,13 +83,8 @@ def my_picks():
     return jsonify({'picks': pick})
 
 @app.route('/api/rankings', methods=['GET'])
-def api_rankings():
-    rankings = getRankings()
-    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
-
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
-def api_week_rankings(week_id):
-    # pull direct from the datastore
+def api_rankings(week_id=models.current_week()):
     rankings = getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
@@ -138,6 +134,18 @@ def ranking(week_id=models.current_week()):
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
     return render_template('ranking.html', header=header,players=players,pickers=pickers)
+
+@app.route('/api/weekly', methods=['GET','POST'])
+def api_weekly():
+    week_id=models.current_week()
+    if request.method == 'GET':
+        rankings = models.get_rankings(week_id)
+        if not rankings:
+            taskqueue.add(url='/api/weekly', params={'week_id': week_id })
+    else:
+        rankings=knarflog.get_rankings()
+        models.put_rankings(rankings)
+    return jsonify({'week_id':week_id, 'success':True })
 
 @app.errorhandler(404)
 def page_not_found(e):
