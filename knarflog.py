@@ -18,6 +18,13 @@ def xstr(string):
     else:
         return string.encode('ascii','ignore').strip()
 
+def get_value(string):
+    try:
+        value=float(string)
+    except:
+        value=0.0
+    return value
+
 # json_results -- get results for a url
 def json_results(url):
     page=urllib2.urlopen(url)
@@ -79,10 +86,10 @@ def player_rankings(row):
         player={'Rank': int(cols[0].text), 'Name': player_name }
         player['ID']=int(row.find('a').get('href').rsplit('=')[-1])
         player['Ctry']= xstr(cols[3].img.get('title'))
-        player['Avg']=round(float(cols[5].text),2)
-        player['Total']=round(float(cols[6].text),2)
+        player['Avg']=round(get_value(cols[5].text),2)
+        player['Total']=round(get_value(cols[6].text),2)
         player['Events']=int(cols[7].text)
-        player['Points']=float(cols[9].text) 
+        player['Points']=get_value(cols[9].text) 
     return player
 
 def player_results(row, keys):
