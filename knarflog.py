@@ -45,7 +45,7 @@ def get_picks():
     for picker in pickers:
         for player in picks[picker][u'Picks']:
             picks[player]=picker
-        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0 }
+        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0,'Week':0 }
     return picks
 
 def get_rank(position):
@@ -90,6 +90,7 @@ def player_rankings(row):
         player['Total']=round(get_value(cols[6].text),2)
         player['Events']=int(cols[7].text)
         player['Points']=get_value(cols[9].text) 
+        player['Week']=player['Points']
     return player
 
 def player_results(row, keys):
@@ -122,6 +123,7 @@ def get_rankings():
                 picks[picker]['Count']+=1
                 picks[picker]['Total']+=int(player['Total']+0.5)
                 picks[picker]['Points']+=int(player['Points']+0.5)
+                picks[picker]['Week']+=int(player['Week']+0.5)
         else:
             if player_name:
                 picks['Available']['Picks'].append(player_name)
