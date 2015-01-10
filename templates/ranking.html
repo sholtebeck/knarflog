@@ -11,7 +11,7 @@
       <tr><th>#</th>
           <th>Player Name</a></th>	
           <th>Points(Avg)</a></th>	
-          <th>Points(Total)</a></th>
+          <th>Points(Week)</a></th>
           <th>World Rank</a></th>
           <th>Points({{header.Year}} )</a></th>
           <th>Picked-By</th>
@@ -24,7 +24,7 @@
         <td>{{index}}{% set index=index+1 %}</td>
         <td>{{player.Name}}</td>
         <td>{{"%.2f"|format(player.Avg)}}</td>
-        <td>{{"%.2f"|format(player.Total)}}</td>
+        <td>{{"%.2f"|format(player.Week)}}</td>
         <td>{{player.Rank}}</td>
         <td>{{"%.2f"|format(player.Points)}}</td>
         <td>{{player.Picker}}</td>
@@ -38,7 +38,7 @@
       <tr><th>Rank</th>
           <th>Picker</th>	
           <th>Picks</a></th>	
-          <th>Total</th>
+          <th>Week</th>
           <th>Points</th>
          </tr>
     </thead>
@@ -49,7 +49,7 @@
         <td>{{index}}{% set index=index+1 %}</td>
         <td>{{picker.Name}}</td>
         <td>{{picker.Count}}</td>
-        <td>{{picker.Total}}</td>
+        <td>{{picker.Week}}</td>
         <td>{{"%.2f"|format(picker.Points)}}</td>
       </tr>
 {% endfor %}   

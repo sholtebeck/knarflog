@@ -75,7 +75,7 @@ $(document).ready(function() {
       <tr><th>#</th>
           <th><a href="#" ng-click="orderProp='Name'">Player Name</a></th>	
           <th><a href="#" ng-click="orderProp='-Avg'">Points(Avg)</a></th>	
-          <th><a href="#" ng-click="orderProp='-Total'">Points(Total)</a></th>
+          <th><a href="#" ng-click="orderProp='-Week'">Points(Week)</a></th>
           <th><a href="#" ng-click="orderProp='Rank'">World Rank</a></th>
           <th><a href="#" ng-click="orderProp='-Points'">Points({{year}} )</a></th>
           <th><a href="#" ng-click="orderProp='Picker'">Picked-By</a></th>
@@ -86,7 +86,7 @@ $(document).ready(function() {
         <td>{{$index + 1}}.</td>
         <td>{{player.Name}}</td>
         <td>{{player.Avg |number:2}}</td>
-        <td>{{player.Total |number:2}}</td>
+        <td>{{player.Week |number:2}}</td>
         <td>{{player.Rank}}</td>
         <td>{{player.Points |number:2}}</td>
         <td>{{player.Picker}}</td>
@@ -100,7 +100,7 @@ $(document).ready(function() {
       <tr><th>Rank</th>
           <th>Picker</th>	
           <th>Count</a></th>	
-          <th>Total</th>
+          <th>Week</th>
           <th>Points</th>
          </tr>
     </thead>
@@ -109,7 +109,7 @@ $(document).ready(function() {
         <td>{{$index + 1}}</td>
         <td>{{picker.Name}}</td>
         <td>{{picker.Count}}</td>
-        <td class="paddinglr5">{{picker.Total|number:2}}</td>
+        <td class="paddinglr5">{{picker.Week|number:2}}</td>
         <td class="paddinglr5">{{picker.Points|number:2}}</td>
       </tr>   
     </tbody>

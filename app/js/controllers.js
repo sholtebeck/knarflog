@@ -44,7 +44,7 @@ knarflog.controller('playersController', ['$scope', '$http',
       $scope.user = data.user;
     });      
     
-    $scope.orderProp = '-Points';
+    $scope.orderProp = 'Rank';
     $scope.year = new Date().getFullYear();
   }]);
 
