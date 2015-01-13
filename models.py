@@ -12,6 +12,7 @@ class Ranking(ndb.Model):
     week_id = ndb.IntegerProperty(required=True)
     week_date = ndb.StringProperty()
     rankings_json = ndb.JsonProperty()
+    results_json = ndb.JsonProperty()
     
 class Picker(ndb.Model):
     picks = ndb.StringProperty(repeated=True)
@@ -91,3 +92,8 @@ def put_rankings(rankings):
     put_pickers(rankings[-1])
         
 
+def put_results(results):
+    week_no = int(current_week())
+    ranking=Ranking(id=week_no)
+    ranking.results_json=results
+    ranking.put()

@@ -1,5 +1,5 @@
 cron:
 - description: weekly update
   url: /api/weekly
-  schedule: every monday 07:00
+  schedule: every tuesday 07:00
   timezone: America/Los_Angeles
