@@ -1,4 +1,5 @@
 # Get OWGR Results
+from time import gmtime,strftime
 import urllib2
 # External modules (bs4)
 import json
@@ -31,6 +32,10 @@ def json_results(url):
     results=json.load(page)
     return results
 
+def last_week():
+    this_week=strftime("%y%U",gmtime())
+    return str(int(this_week)-1)
+
 # soup_results -- get results for a url
 def soup_results(url):
     page=urllib2.urlopen(url)
@@ -45,9 +50,22 @@ def get_picks():
     for picker in pickers:
         for player in picks[picker][u'Picks']:
             picks[player]=picker
-        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0,'Week':0 }
+        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0 }
     return picks
 
+# Get the totals for last week
+def get_points():
+    points={}
+    url="http://knarflog.appspot.com/api/rankings/"+last_week()
+    rankings=json_results(url)
+    pickers=rankings['pickers']
+    # initialize counter for each user
+    for picker in rankings['pickers']:
+        points[picker['Name']]=picker['Points']
+    for player in rankings['players']:
+        points[player['Name']]=player['Points']
+    return points    
+    
 def get_rank(position):
     if not position or not position.replace('T','').isdigit():
         return 0
@@ -90,7 +108,6 @@ def player_rankings(row):
         player['Total']=round(get_value(cols[6].text),2)
         player['Events']=int(cols[7].text)
         player['Points']=get_value(cols[9].text) 
-        player['Week']=player['Points']
     return player
 
 def player_results(row, keys):
@@ -123,7 +140,6 @@ def get_rankings():
                 picks[picker]['Count']+=1
                 picks[picker]['Total']+=int(player['Total']+0.5)
                 picks[picker]['Points']+=int(player['Points']+0.5)
-                picks[picker]['Week']+=int(player['Week']+0.5)
         else:
             if player_name:
                 picks['Available']['Picks'].append(player_name)
