@@ -75,6 +75,14 @@ def get_rankings(week_id=current_week()):
         rankings = None
     return rankings
 
+def get_results(week_id=current_week()):
+    ranking = Ranking.get_by_id(week_id)
+    if ranking:
+        results = ranking.results_json
+    else:
+        results = None
+    return results
+
 # put picker information from rankings
 def put_pickers(pickdict):
     for pickey in pickdict.keys():
@@ -82,18 +90,18 @@ def put_pickers(pickdict):
         picker=Picker(id=pickey, count=pickval.get('Count'),picks=pickval.get('Picks'), points=pickval.get('Points',0.0))  
         picker.put()
 
-def put_rankings(rankings):
+def put_rankings(rankings,results):
     week_no = int(current_week())
     ranking=Ranking(id=week_no)
     ranking.week_id=int(rankings[0].get('Week'))
     ranking.week_date=rankings[0].get('date')
     ranking.rankings_json=rankings
+    ranking.results_json=results
     ranking.put()
-    put_pickers(rankings[-1])
-        
-
+ 
 def put_results(results):
     week_no = int(current_week())
     ranking=Ranking(id=week_no)
+    ranking.week_id=int(week_no)    
     ranking.results_json=results
     ranking.put()

@@ -8,7 +8,8 @@ sys.path[0:0] = ['lib']
 from bs4 import BeautifulSoup
 MAXPICKS=12
 pickers=(u'Mark',u'Steve')
-
+points={}
+picks={}
 
 # Handler for string values to ASCII or integer
 def xstr(string):
@@ -46,24 +47,22 @@ def soup_results(url):
 def get_picks():
     url="http://knarflog.appspot.com/api/picks"
     picks=json_results(url).get('picks')
+    points=get_points()
     # initialize counter for each user
     for picker in pickers:
         for player in picks[picker][u'Picks']:
-            picks[player]=picker
-        picks[picker]={'Name':picker,'Count':0,'Points':0,'Picks':[],'Total':0 }
+            picks[player]={'Picker': picker, 'Points': points.get(player) }
+        picks[picker]={'Name':picker,'Count':0,'Points':points.get(picker),'Picks':[],'Week':0 }
     return picks
 
 # Get the totals for last week
 def get_points():
-    points={}
     url="http://knarflog.appspot.com/api/rankings/"+last_week()
     rankings=json_results(url)
-    pickers=rankings['pickers']
     # initialize counter for each user
-    for picker in rankings['pickers']:
-        points[picker['Name']]=picker['Points']
-    for player in rankings['players']:
-        points[player['Name']]=player['Points']
+    for picker in rankings['pickers']+rankings['players']:
+        if picker.get('Name'):
+            points[picker['Name']]=picker.get('Points')
     return points    
     
 def get_rank(position):
@@ -108,6 +107,7 @@ def player_rankings(row):
         player['Total']=round(get_value(cols[6].text),2)
         player['Events']=int(cols[7].text)
         player['Points']=get_value(cols[9].text) 
+        player['Week']=player['Points']-points.get(player_name,0)
     return player
 
 def player_results(row, keys):
@@ -132,14 +132,15 @@ def get_rankings():
         player=player_rankings(row)
         player_name=player.get('Name')
         if player_name in picks.keys():
-            picker=picks[player_name]
+            picker=picks[player_name]['Picker']
+            player['Week']=player['Points']-picks[player_name]['Points']
             player['Picker']=picker
             player['Pickno']=picks[picker]['Count']
             if picks[picker]['Count']<MAXPICKS:
                 picks[picker]['Picks'].append(player_name)
                 picks[picker]['Count']+=1
-                picks[picker]['Total']+=int(player['Total']+0.5)
-                picks[picker]['Points']+=int(player['Points']+0.5)
+                picks[picker]['Week']+=player['Week']
+                picks[picker]['Points']+=player['Week']
         else:
             if player_name:
                 picks['Available']['Picks'].append(player_name)
@@ -147,26 +148,32 @@ def get_rankings():
         if player and player_name:          
             rankings.append(player)
     # append totals to the end
-    rankings.append({key:value for key,value in picks.iteritems() if key in picks.values()})
+    rankings.append({key:value for key,value in picks.iteritems() if key in pickers})
     picks['Available']['Picks'].sort()
     rankings[-1]['Available']=picks['Available']
     return rankings
 
 def get_results(event_id):
+    picks=get_picks()
     event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
     soup=soup_results(event_url)
     headers=event_headers(soup)
     keys=headers.get('columns')
-    players=[headers]
+    players=[]
     for row in soup.findAll('tr'):
         name = row.find('td',{'class': "name"})
         if name and name.string:
             player=player_results(row,keys)
-            if player.get('Points')>0:
+            if player.get('Points')>0 and player.get('Name') in picks.keys():
+                player_name=player['Name']
+                picker=picks[player_name]['Picker']
+                player['Picker']=xstr(picker)
                 players.append(player)
     return players
 
-def get_majors(year):
+def get_events(week_id):
+    week=week_id % 100
+    year=2000 + int(week_id/100)
     events_url='http://www.owgr.com/en/Events.aspx?year='+str(year)
     soup = soup_results(events_url)
     headers=event_headers(soup)
@@ -175,18 +182,10 @@ def get_majors(year):
     for row in soup.findAll('tr'):
         if row.find(id="ctl5"):
             event=event_results(row,keys)
-            if event.get("Points",0)>99:
-                 events.append(event)
+            if event.get("Week",0)==week:
+                 results=get_results(event['ID'])
+                 if results:
+                     event['Results']=results
+                     events.append(event)
     return events
-
-#def write_majors(year):
-#    events=get_majors(year)
-#    for event in events:
-#        print event.get('event_id'), event.get('Event Name')
-#        results=get_results(event.get('event_id'))
-#        event['Results']=results
-#    json.dump(events,open(str(year)+'.json','wb'))
-
-    
-
 

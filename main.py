@@ -40,6 +40,13 @@ def getRankings(week_id=models.current_week()):
         memcache.add('rankings:'+str(week_id), rankings)
     return rankings   
 
+def getResults(week_id=models.current_week()):
+    results = memcache.get('results:'+str(week_id))
+    if not results:
+        results = models.get_results(week_id)
+        memcache.add('results:'+str(week_id), results)
+    return results   
+
 def myPicks(username):
     picks=models.get_picks(username)
     return picks   
@@ -87,6 +94,15 @@ def my_picks():
 def api_rankings(week_id=models.current_week()):
     rankings = getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
+
+@app.route('/api/results', methods=['GET','POST'])
+@app.route('/api/results/<int:week_id>', methods=['GET'])
+def api_results(week_id=models.current_week()):
+    results = getResults(week_id)
+    if not results and request.method=='POST':      
+        results = knarflog.get_events(week_id)
+        models.put_results(results)
+    return jsonify({ 'results': results })
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -142,9 +158,14 @@ def api_weekly():
         rankings = models.get_rankings(week_id)
         if not rankings:
             taskqueue.add(url='/api/weekly', params={'week_id': week_id })
+        results = models.get_results(week_id)
+        if not results:
+            taskqueue.add(url='/api/results', params={'week_id': week_id })
     else:
         rankings=knarflog.get_rankings()
-        models.put_rankings(rankings)
+        results=knarflog.get_events(week_id)
+        models.put_rankings(rankings,results)
+        models.put_pickers(rankings[-1])
     return jsonify({'week_id':week_id, 'success':True })
 
 @app.errorhandler(404)
