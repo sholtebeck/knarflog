@@ -164,7 +164,7 @@ def get_results(event_id):
         name = row.find('td',{'class': "name"})
         if name and name.string:
             player=player_results(row,keys)
-            if player.get('Points')>0 and player.get('Name') in picks.keys():
+            if player.get('Name') in picks.keys():
                 player_name=player['Name']
                 picker=picks[player_name]['Picker']
                 player['Picker']=xstr(picker)
