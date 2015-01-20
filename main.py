@@ -13,7 +13,7 @@ picks_url='/picks'
 # the App Engine WSGI application server.
 def logon_info():
     # check for login
-    names={'sholtebeck':'Steve','mholtebeck':'Mark','skipfloguser':'Steve'}
+    names={'sholtebeck':'Steve','mholtebeck':'Mark','skipfloguser':'Steve','mholtebeckcava':'Mark' }
     log={'nickname':'guest', 'url_link':users.create_login_url(request.url), 'url_title': 'Login' }
     if users.get_current_user():
         log['nickname']=nickname=users.get_current_user().nickname()
@@ -35,7 +35,7 @@ def getRankings(week_id=models.current_week()):
         rankings = models.get_rankings(week_id)
     if not rankings:
         taskqueue.add(url='/api/weekly', params={'week_id': week_id })
-        rankings=models.get_rankings(week_id-1)
+        rankings=None
     else:
         memcache.add('rankings:'+str(week_id), rankings)
     return rankings   
