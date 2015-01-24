@@ -55,6 +55,18 @@ def get_picks():
         picks[picker]={'Name':picker,'Count':0,'Points':points.get(picker),'Picks':[],'Week':0 }
     return picks
 
+def get_picker_results(results):
+    picker_results={}
+    for picker in pickers:
+        picker_results[picker]={'Name':picker,'Count':0,'Points':0 }
+    for result in results:
+        for player in result['Results']:
+            picker=player.get('Picker')
+            if picker:
+                picker_results[picker]['Count']+=1
+                picker_results[picker]['Points']+=player['Points']
+    return picker_results
+
 # Get the totals for last week
 def get_points():
     url="http://knarflog.appspot.com/api/rankings/"+last_week()

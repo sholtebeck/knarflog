@@ -102,7 +102,7 @@ def api_results(week_id=models.current_week()):
     if not results and request.method=='POST':      
         results = knarflog.get_events(week_id)
         models.put_results(results)
-    return jsonify({ 'results': results })
+    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
 
 @app.route('/api/user', methods=['GET'])
 def get_user():

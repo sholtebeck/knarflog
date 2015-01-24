@@ -44,7 +44,16 @@ knarflog.controller('playersController', ['$scope', '$http',
       $scope.user = data.user;
     });      
     
-    $scope.orderProp = 'Rank';
+    $scope.orderProp = '-Points';
     $scope.year = new Date().getFullYear();
   }]);
 
+knarflog.controller('resultsController', ['$scope', '$http',
+  function($scope, $http) {
+    $http.get('/api/results').success(function(data) {
+      $scope.results= data.results;
+      $scope.pickers = data.pickers;
+    });
+    
+    $scope.orderProp = 'Rank';
+  }]);

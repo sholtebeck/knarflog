@@ -119,5 +119,58 @@ $(document).ready(function() {
 </div>
 </div><!-- #tab2 -->
 <div id="tab3" class="tab_content"> 
+<div ng-controller="resultsController">
+   Search: <input ng-model="query">   
+  <p>
+<div ng-repeat='event in results'>
+  <table>
+    <thead>
+      <tr><th colspan="9">{{event['Event Name']}}</th></tr>
+      <tr>
+          <th><a href="#" ng-click="orderProp='Rank'">Pos</a></th>
+          <th><a href="#" ng-click="orderProp='Name'">Player Name</a></th>
+          <th><a href="#" ng-click="orderProp='R1'">R1</a></th>
+          <th><a href="#" ng-click="orderProp='R2'">R2</a></th>
+          <th><a href="#" ng-click="orderProp='R3'">R3</a></th>
+          <th><a href="#" ng-click="orderProp='R4'">R4</a></th>
+          <th><a href="#" ng-click="orderProp='Agg">Total</a></th>
+          <th><a href="#" ng-click="orderProp='-Points'">Points</a></th>
+          <th><a href="#" ng-click="orderProp='Picker'">Picked-By</a></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="result in event.Results | filter:{Name: '!!'}| filter:query | orderBy:orderProp">
+        <td>{{result.Pos}}</td>
+        <td>{{result.Name}}</td>
+        <td>{{result.R1}}</td>
+        <td>{{result.R2}}</td>
+        <td>{{result.R3}}</td>
+        <td>{{result.R4}}</td>
+        <td>{{result.Agg}}</td>
+        <td>{{result.Points|number:2}}</td>
+        <td>{{result.Picker}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+</div>
+  <div ng-if="pickers" class="paddinglr5">
+    <table>
+    <thead>
+      <tr><th>Rank</th>
+          <th>Picker</th>	
+          <th>Players</a></th>	
+          <th>Points</th>
+         </tr>
+    </thead>
+   <tbody>
+       <tr ng-repeat="picker in pickers | filter:{Name: '!!'} | orderBy:'-Points'">
+        <td>{{$index + 1}}</td>
+        <td>{{picker.Name}}</td>
+        <td>{{picker.Count}}</td>
+        <td class="paddinglr5">{{picker.Points|number:2}}</td>
+      </tr>   
+    </tbody>
+  </table>
 </div><!-- #tab3 -->
 </html>
