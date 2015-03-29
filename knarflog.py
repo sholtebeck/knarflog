@@ -2,8 +2,7 @@
 from time import gmtime,strftime
 import urllib2
 # External modules (bs4)
-import json
-import sys
+import json,csv,sys
 sys.path[0:0] = ['lib']
 from bs4 import BeautifulSoup
 MAXPICKS=12
@@ -42,6 +41,29 @@ def soup_results(url):
     page=urllib2.urlopen(url)
     soup = BeautifulSoup(page.read())
     return soup
+
+# get_field (loaded from api)
+def get_players():
+    players=[]
+    players_url="https://docs.google.com/spreadsheet/pub?key=0AgO6LpgSovGGdDI4bVpHU05zUDQ3R09rUnZ4LXBQS0E&single=true&gid=1&range=A2%3AF100&output=csv"
+    result = urllib2.urlopen(players_url)
+    reader = csv.reader(result)
+    rownum = 0
+    for row in reader:
+        if row:
+            rownum += 1
+            player={'rownum':rownum }
+            player['rank']=int(row[0])
+            player['name']=row[1]
+            player['points']=int(row[2].replace(',','').replace('-','0'))
+            player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
+            player['odds']=int(row[4])
+            if int(row[5])>0:
+                player['picked']=True
+            else:
+                player['picked']=False
+            players.append(player)
+    return players
 
 # get_picks (loaded from api)
 def get_picks():

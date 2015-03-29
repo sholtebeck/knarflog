@@ -79,6 +79,11 @@ def picks(picker=None):
         picks=getPicks()
     return jsonify({'picks': picks})
 
+@app.route('/api/players', methods=['GET'])
+def api_players(picker=None):
+    players=knarflog.get_players()
+    return jsonify({'players': players})
+
 @app.route('/api/mypicks', methods=['GET'])
 def my_picks():
     current_user=logon_info()
