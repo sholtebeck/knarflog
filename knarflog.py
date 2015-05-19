@@ -109,11 +109,11 @@ def get_rank(position):
 def event_headers(soup):
     headers={}
     if soup.title.string:
-        headers['title']=str(soup.title.string)
+        headers['title']=soup.title.string
     headers['url']=str(soup.find('form').get('action'))
     if headers['url'].find('=')>0:
         headers['id']=headers['url'].split('=')[1]
-    headers['name']=str(soup.find('h2').string)
+    headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
     headers['Week']=headers['name'][-2:]
     headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
