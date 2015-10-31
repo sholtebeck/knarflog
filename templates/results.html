@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="knarflog">
+<head>
+  <title>knarflog:results</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+{% for event in results %}
+  <table>
+    <thead>
+      <tr><th colspan="9">{{event['Event Name']}}</th></tr>
+      <tr>
+          <th>Pos</th>
+          <th>Player Name</th>
+          <th>R1</th>
+          <th>R2</th>
+          <th>R3</th>
+          <th>R4</th>
+          <th>Total</th>
+          <th>Points</th>
+          <th>Picked-By</th>
+      </tr>
+    </thead>
+    <tbody>
+   {% for result in event.Results %}
+      <tr>
+        <td>{{result.Pos}}</td>
+        <td>{{result.Name}}</td>
+        <td>{{result.R1}}</td>
+        <td>{{result.R2}}</td>
+        <td>{{result.R3}}</td>
+        <td>{{result.R4}}</td>
+        <td>{{result.Agg}}</td>
+        <td>{{"%.2f"|format(result.Points)}}</td>
+        <td>{{result.Picker}}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>
+{% endfor %}
+</div>
+    <table>
+    <thead>
+      <tr><th>Rank</th>
+          <th>Picker</th>	
+          <th>Players</a></th>	
+          <th>Points</th>
+         </tr>
+    </thead>
+   <tbody>
+<p>
+{% for picker in pickers %}
+     <tr>
+        <td>{{picker.Rank}}</td>
+        <td>{{picker.Name}}</td>
+        <td>{{picker.Count}}</td>
+        <td>{{"%.2f"|format(picker.Points)}}</td>
+      </tr>   
+{% endfor %}
+    </tbody>
+  </table>
+</div><!-- #tab3 -->
+</body>
+</html>
