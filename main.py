@@ -156,6 +156,14 @@ def ranking(week_id=models.current_week()):
         pickers.reverse()
     return render_template('ranking.html', header=header,players=players,pickers=pickers)
 
+@app.route('/results', methods=['GET'])
+@app.route('/results/<int:week_id>', methods=['GET'])
+def results(week_id=models.current_week()):
+    results = getResults(week_id)
+    pickres = knarflog.get_picker_results(results)
+    pickers=[picker for picker in pickres.values() if picker.get('Name')]
+    return render_template('results.html',results=results,pickers=pickers)
+
 @app.route('/api/weekly', methods=['GET','POST'])
 def api_weekly():
     week_id=models.current_week()

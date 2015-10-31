@@ -45,7 +45,7 @@ def soup_results(url):
 # get_field (loaded from api)
 def get_players():
     players=[]
-    players_url="https://docs.google.com/spreadsheet/pub?key=0AgO6LpgSovGGdDI4bVpHU05zUDQ3R09rUnZ4LXBQS0E&single=true&gid=1&range=A2%3AF150&output=csv"
+    players_url="https://docs.google.com/spreadsheet/pub?key=0AgO6LpgSovGGdDI4bVpHU05zUDQ3R09rUnZ4LXBQS0E&single=true&gid=1&range=A2%3AF155&output=csv"
     result = urllib2.urlopen(players_url)
     reader = csv.reader(result)
     rownum = 0
@@ -53,13 +53,13 @@ def get_players():
         if row:
             rownum += 1
             player={'rownum':rownum }
-            player['rank']=int(row[0])
+            player['rank']=rownum
             player['name']=row[1]
             player['points']=int(row[2].replace(',','').replace('-','0'))
             player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
             if get_value(row[4]):
                 player['odds']=int(row[4])
-            if int(row[5])>0:
+            if get_value(row[5]):
                 player['picked']=True
             else:
                 player['picked']=False
@@ -81,13 +81,18 @@ def get_picks():
 def get_picker_results(results):
     picker_results={}
     for picker in pickers:
-        picker_results[picker]={'Name':picker,'Count':0,'Points':0 }
-    for result in results:
-        for player in result['Results']:
-            picker=player.get('Picker')
-            if picker:
-                picker_results[picker]['Count']+=1
-                picker_results[picker]['Points']+=player['Points']
+        picker_results[picker]={'Name':picker,'Count':0,'Points':0,'Rank':1 }
+    if results:
+        for result in results:
+            for player in result['Results']:
+                picker=player.get('Picker')
+                if picker:
+                    picker_results[picker]['Count']+=1
+                    picker_results[picker]['Points']+=player['Points']
+    if (picker_results[pickers[0]]['Points']>picker_results[pickers[1]]['Points']):
+        picker_results[pickers[1]]['Rank']=2
+    else:
+        picker_results[pickers[0]]['Rank']=2
     return picker_results
 
 # Get the totals for last week
