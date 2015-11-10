@@ -32,6 +32,10 @@ def json_results(url):
     results=json.load(page)
     return results
 
+def current_week():
+    this_week=strftime("%U",gmtime())
+    return str(int(this_week))
+
 def last_week():
     this_week=strftime("%y%U",gmtime())
     return str(int(this_week)-1)

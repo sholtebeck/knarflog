@@ -169,6 +169,7 @@ def results(week_id=models.current_week()):
 @app.route('/api/weekly', methods=['GET','POST'])
 def api_weekly():
     week_id=models.current_week()
+    success=True
     if request.method == 'GET':
         rankings = models.get_rankings(week_id)
         if not rankings:
@@ -178,10 +179,16 @@ def api_weekly():
             taskqueue.add(url='/api/results', params={'week_id': week_id })
     else:
         rankings=knarflog.get_rankings()
-        results=knarflog.get_events(week_id)
-        models.put_rankings(rankings,results)
-        models.put_pickers(rankings[-1])
-    return jsonify({'week_id':week_id, 'success':True })
+        if str(rankings[0].get('Week')) == current_week():
+            results=knarflog.get_events(week_id)
+            models.put_rankings(rankings,results)
+            models.put_pickers(rankings[-1])
+            models.delete_ranking(week_id-100)
+        else:
+            taskqueue.add(url='/api/weekly', params={'week_id': week_id }, countdown=3600)
+            success=False
+
+    return jsonify({'week_id':week_id, 'success':success})
 
 @app.errorhandler(404)
 def page_not_found(e):
