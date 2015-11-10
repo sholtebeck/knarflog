@@ -162,6 +162,8 @@ def results(week_id=models.current_week()):
     results = getResults(week_id)
     pickres = knarflog.get_picker_results(results)
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
+    if pickers[1]['Points']>pickers[0]['Points']:
+        pickers.reverse()
     return render_template('results.html',results=results,pickers=pickers)
 
 @app.route('/api/weekly', methods=['GET','POST'])
