@@ -199,20 +199,30 @@ def get_rankings():
 
 def get_results(event_id):
     picks=get_picks()
+    num_picks=0
     event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
     soup=soup_results(event_url)
     headers=event_headers(soup)
     keys=headers.get('columns')
     players=[]
     for row in soup.findAll('tr'):
+        add_player=False
         name = row.find('td',{'class': "name"})
         if name and name.string:
             player=player_results(row,keys)
+            if player.get("Rank")==1:
+                add_player=True
             if player.get('Name') in picks.keys():
                 player_name=player['Name']
                 picker=picks[player_name]['Picker']
                 player['Picker']=xstr(picker)
-                players.append(player)
+                add_player=True
+                num_picks+=1
+        if add_player:
+           players.append(player)
+    # only add events with picks
+    if num_picks==0:
+        players=[]
     return players
 
 def get_events(week_id):

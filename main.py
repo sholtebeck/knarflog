@@ -179,7 +179,7 @@ def api_weekly():
             taskqueue.add(url='/api/results', params={'week_id': week_id })
     else:
         rankings=knarflog.get_rankings()
-        if str(rankings[0].get('Week')) == current_week():
+        if str(rankings[0].get('Week')) == knarflog.current_week():
             results=knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
             models.put_pickers(rankings[-1])
