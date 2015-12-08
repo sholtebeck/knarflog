@@ -126,7 +126,8 @@ def event_headers(soup):
     headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
     headers['Week']=headers['name'][-2:]
-    headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
+#   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
+    headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
     return headers
 
 def event_results(row, keys):
