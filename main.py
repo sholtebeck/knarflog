@@ -70,6 +70,12 @@ def main():
 def about():
     return render_template('about.html', title='about', log=logon_info())
 
+@app.route('/api/init', methods=['GET'])
+def api_init():
+    rankings = models.init_rankings()
+    models.put_pickers(rankings[-1])
+    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
+
 @app.route('/api/picks', methods=['GET'])
 @app.route('/api/picks/<picker>', methods=['GET'])
 def picks(picker=None):
