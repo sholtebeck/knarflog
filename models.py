@@ -90,14 +90,14 @@ def get_results(week_id=current_week()):
 
 #Initialize Rankings for new year
 def init_rankings():
-    week_no = 1600
-    rankings=get_rankings(1552)
+    week_no = 1601
+    rankings=get_rankings(1600)
     ranking=Ranking(id=week_no)
     ranking.week_id=week_no
     ranking.week_date='January 1st 2016'
     rankings[0]['Week']=0
     rankings[0]['date']=ranking.week_date
-    rankings[0]['name']='WEEK 0'
+    rankings[0]['name']='WEEK 1'
     rankings[-1]['Mark']['Points']=0.0
     rankings[-1]['Steve']['Points']=0.0
     for rank in range(1,101):
