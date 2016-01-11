@@ -89,22 +89,13 @@ def get_results(week_id=current_week()):
     return results
 
 #Initialize Rankings for new year
-def init_rankings():
-    week_no = 1601
-    rankings=get_rankings(1600)
-    ranking=Ranking(id=week_no)
-    ranking.week_id=week_no
-    ranking.week_date='January 1st 2016'
-    rankings[0]['Week']=0
-    rankings[0]['date']=ranking.week_date
-    rankings[0]['name']='WEEK 1'
-    rankings[-1]['Mark']['Points']=0.0
-    rankings[-1]['Steve']['Points']=0.0
-    for rank in range(1,101):
-        rankings[rank]['Points']=0.0
+def init_rankings(rankings):
+    week_id = int(current_week())
+    ranking = Ranking.get_by_id(week_id)
+    ranking.week_id=int(rankings[0].get('Week'))
+    ranking.week_date=rankings[0].get('date')
     ranking.rankings_json=rankings
     ranking.put()
-    return ranking.rankings_json
 
 # put picker information from rankings
 def put_pickers(pickdict):

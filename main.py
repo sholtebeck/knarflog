@@ -72,7 +72,13 @@ def about():
 
 @app.route('/api/init', methods=['GET'])
 def api_init():
-    rankings = models.init_rankings()
+    rankings = knarflog.get_rankings()
+    models.init_rankings(rankings)
+    models.put_pickers(rankings[-1])
+    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
+
+@app.errorhandler(404)
+def page_not_found(e):
     models.put_pickers(rankings[-1])
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
