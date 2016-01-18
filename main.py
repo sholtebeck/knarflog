@@ -70,7 +70,7 @@ def main():
 def about():
     return render_template('about.html', title='about', log=logon_info())
 
-@app.route('/api/init', methods=['GET'])
+@app.route('/api/init', methods=['GET','POST'])
 def api_init():
     rankings = knarflog.get_rankings()
     models.init_rankings(rankings)
@@ -191,7 +191,7 @@ def api_weekly():
             taskqueue.add(url='/api/results', params={'week_id': week_id })
     else:
         rankings=knarflog.get_rankings()
-        if str(rankings[0].get('Week')) == knarflog.current_week():
+        if int(rankings[0].get('Week')) == int(knarflog.current_week()):
             results=knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
             models.put_pickers(rankings[-1])
