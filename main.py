@@ -34,7 +34,7 @@ def getRankings(week_id=models.current_week()):
     if not rankings:
         rankings = models.get_rankings(week_id)
     if not rankings:
-        taskqueue.add(url='/api/weekly', params={'week_id': week_id })
+        taskqueue.add(url='/api/rankings', params={'week_id': week_id })
         rankings=None
     else:
         memcache.add('rankings:'+str(week_id), rankings)
@@ -106,10 +106,16 @@ def my_picks():
         pick['Available']=sorted(myPicks('Available')['Picks'])
     return jsonify({'picks': pick})
 
-@app.route('/api/rankings', methods=['GET'])
+@app.route('/api/rankings', methods=['GET','POST'])
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
 def api_rankings(week_id=models.current_week()):
-    rankings = getRankings(week_id)
+    if request.method=='POST':      
+        rankings = knarflog.get_rankings()
+        results = knarflog.get_events(week_id)
+        models.put_rankings(rankings,results)
+        models.put_pickers(rankings[-1])
+    else:
+        rankings=getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
 @app.route('/api/results', methods=['GET','POST'])
@@ -178,29 +184,17 @@ def results(week_id=models.current_week()):
         pickers.reverse()
     return render_template('results.html',results=results,pickers=pickers)
 
-@app.route('/api/weekly', methods=['GET','POST'])
+@app.route('/api/weekly', methods=['GET'])
 def api_weekly():
     week_id=models.current_week()
-    success=True
-    if request.method == 'GET':
-        rankings = models.get_rankings(week_id)
-        if not rankings:
-            taskqueue.add(url='/api/weekly', params={'week_id': week_id })
-        results = models.get_results(week_id)
-        if not results:
-            taskqueue.add(url='/api/results', params={'week_id': week_id })
-    else:
-        rankings=knarflog.get_rankings()
-        if int(rankings[0].get('Week')) == int(knarflog.current_week()):
-            results=knarflog.get_events(week_id)
-            models.put_rankings(rankings,results)
-            models.put_pickers(rankings[-1])
-            models.delete_ranking(week_id-100)
-        else:
-            taskqueue.add(url='/api/weekly', params={'week_id': week_id }, countdown=3600)
-            success=False
-
-    return jsonify({'week_id':week_id, 'success':success})
+    rankings = models.get_rankings(week_id)
+    results = models.get_results(week_id)
+    success = False
+    if not rankings or not results:
+        loaded = True
+        taskqueue.add(url='/api/rankings', params={'week_id': week_id })
+        taskqueue.add(url='/api/results', params={'week_id': week_id })
+    return jsonify({'week_id':week_id, 'loaded': loaded})
 
 @app.errorhandler(404)
 def page_not_found(e):
