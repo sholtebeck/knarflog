@@ -72,10 +72,13 @@ def about():
 
 @app.route('/api/init', methods=['GET','POST'])
 def api_init():
-    rankings = knarflog.get_rankings()
-    models.init_rankings(rankings)
-    models.put_pickers(rankings[-1])
-    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
+#   rankings = knarflog.get_rankings()
+#   models.init_rankings(rankings)
+#   models.put_pickers(rankings[-1])
+#   return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
+    week_id = models.current_week()
+    taskqueue.add(url='/api/results', params={'week_id': week_id })
+    return jsonify({ 'week_id': week_id, 'results': getResults(week_id) })
 
 @app.errorhandler(404)
 def page_not_found(e):
