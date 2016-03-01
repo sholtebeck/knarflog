@@ -125,7 +125,7 @@ def api_rankings(week_id=models.current_week()):
 @app.route('/api/results/<int:week_id>', methods=['GET'])
 def api_results(week_id=models.current_week()):
     results = getResults(week_id)
-    if not results and request.method=='POST':      
+    if request.method=='POST':      
         results = knarflog.get_events(week_id)
         models.put_results(results)
     return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
