@@ -30,9 +30,7 @@ def get_current_user():
     return current_user.get('name')
 
 def getRankings(week_id=models.current_week()):
-    rankings = memcache.get('rankings:'+str(week_id))
-    if not rankings:
-        rankings = models.get_rankings(week_id)
+    rankings = models.get_rankings(week_id)
     if not rankings:
         taskqueue.add(url='/api/rankings', params={'week_id': week_id })
         rankings=None
@@ -41,7 +39,7 @@ def getRankings(week_id=models.current_week()):
     return rankings   
 
 def getResults(week_id=models.current_week()):
-    results = memcache.get('results:'+str(week_id))
+    results = models.get_results(week_id)
     if not results:
         results = models.get_results(week_id)
         memcache.add('results:'+str(week_id), results)

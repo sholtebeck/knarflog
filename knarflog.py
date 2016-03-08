@@ -237,7 +237,7 @@ def get_events(week_id):
     for row in soup.findAll('tr'):
         if row.find(id="ctl5"):
             event=event_results(row,keys)
-            if event.get("Week",0)==week:
+            if event.get("Week",0)==week and event.get("Points",0)>10:
                  results=get_results(event['ID'])
                  if results:
                      event['Results']=results
