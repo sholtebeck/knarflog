@@ -96,7 +96,7 @@ def picks(picker=None):
 def api_players(picker=None):
     event=knarflog.get_event()
     players=knarflog.get_players()
-    return jsonify({'event':event, players': players})
+    return jsonify({'event':event, 'players': players})
 
 @app.route('/api/mypicks', methods=['GET'])
 def my_picks():
