@@ -47,6 +47,19 @@ def soup_results(url):
     return soup
 
 # get_field (loaded from api)
+def get_event():
+    events_url='https://docs.google.com/spreadsheets/d/1rb_attQJRkfOuQSeg7Qq8GoYdgorpm-oQKK60AQY8J8/pub?single=true&gid=0&range=A2:E2&output=csv'
+    result = urllib2.urlopen(events_url)
+    reader = csv.reader(result)
+    event={}
+    for row in reader:
+        event['id']=row[0]
+        event['name']=row[1]
+        event['shortname']=row[1][5:]
+        event['url']=row[2]
+        event['start']=row[3]
+    return event
+
 def get_players():
     players=[]
     players_url="https://docs.google.com/spreadsheet/pub?key=0AgO6LpgSovGGdDI4bVpHU05zUDQ3R09rUnZ4LXBQS0E&single=true&gid=1&range=A2%3AF155&output=csv"

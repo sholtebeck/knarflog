@@ -13,10 +13,10 @@
  Search: <input ng-model="query"> <p>  
   <table>
     <thead>
-      <tr><th colspan="7">2015 PGA Championship</th></tr>
+      <tr><th colspan="7">{{event.name}}</th></tr>
       <tr><th>#</th>
           <th><a href="#" ng-click="orderProp='name'">Player Name</a></th>	
-          <th><a href="#" ng-click="orderProp='-points'">Points(PGA)</a></th>	
+          <th><a href="#" ng-click="orderProp='-points'">Points({{event.shortname}})</a></th>	
           <th><a href="#" ng-click="orderProp='-hotpoints'">Points(Hot)</a></th>
           <th><a href="#" ng-click="orderProp='rank'">World Rank</a></th>
           <th><a href="#" ng-click="orderProp='odds'">Odds</a></th>
