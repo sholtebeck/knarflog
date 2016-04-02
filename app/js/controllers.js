@@ -36,6 +36,7 @@ var knarflog = angular.module('knarflog', []);
 knarflog.controller('playersController', ['$scope', '$http',
   function($scope, $http) {
     $http.get('/api/players').success(function(data) {
+      $scope.event = data.event;
       $scope.players = data.players;
      });
     $scope.orderProp = 'name';
