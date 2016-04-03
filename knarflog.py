@@ -70,7 +70,7 @@ def get_players():
         if row:
             rownum += 1
             player={'rownum':rownum }
-            player['rank']=rownum
+            player['rank']=row[0]
             player['name']=row[1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
             player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
