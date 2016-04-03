@@ -72,10 +72,10 @@ def get_players():
             player={'rownum':rownum }
             player['rank']=rownum
             player['name']=row[1]
-            player['points']=int(row[2].replace(',','').replace('-','0'))
+            player['points']=get_value(row[2].replace(',','').replace('-','0'))
             player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
             if get_value(row[4]):
-                player['odds']=int(row[4])
+                player['odds']=get_value(row[4])
             if get_value(row[5]):
                 player['picked']=True
             else:
