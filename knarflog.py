@@ -65,12 +65,12 @@ def get_players():
     players_url="https://docs.google.com/spreadsheet/pub?key=0AgO6LpgSovGGdDI4bVpHU05zUDQ3R09rUnZ4LXBQS0E&single=true&gid=1&range=A2%3AF155&output=csv"
     result = urllib2.urlopen(players_url)
     reader = csv.reader(result)
-    rownum = 0
+    rownum = 1
     for row in reader:
         if row:
             rownum += 1
             player={'rownum':rownum }
-            player['rank']=row[0]
+            player['rank']=int(row[0])
             player['name']=row[1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
             player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
@@ -179,6 +179,17 @@ def player_results(row, keys):
 
 def get_player(player_id):
     return None
+
+def get_ranking(size):
+    ranking_url="http://www.owgr.com/ranking?pageSize="+str(size)
+    soup=soup_results(ranking_url)
+    ranking=[event_headers(soup)]
+    for row in soup.findAll('tr'):
+        player=player_rankings(row)
+        player_name=player.get('Name')
+        if player and player_name:
+            ranking.append(player)
+    return ranking
 
 def get_rankings():
     picks=get_picks()

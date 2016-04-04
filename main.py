@@ -108,6 +108,12 @@ def my_picks():
         pick['Available']=sorted(myPicks('Available')['Picks'])
     return jsonify({'picks': pick})
 
+@app.route('/api/ranking', methods=['GET'])
+@app.route('/api/ranking/<int:size>', methods=['GET'])
+def api_ranking(size=100):
+    ranking=knarflog.get_ranking(size)
+    return jsonify({'headers': ranking[0],'players': ranking[1:]})
+
 @app.route('/api/rankings', methods=['GET','POST'])
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
 def api_rankings(week_id=models.current_week()):
