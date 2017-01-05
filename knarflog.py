@@ -36,6 +36,10 @@ def current_week():
     this_week=strftime("%U",gmtime())
     return str(int(this_week))
 
+def current_year():
+    this_week=strftime("%Y",gmtime())
+    return str(int(this_week))    
+
 def last_week():
     this_week=strftime("%y%U",gmtime())
     return str(int(this_week)-1)

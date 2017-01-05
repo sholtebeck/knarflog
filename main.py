@@ -106,6 +106,7 @@ def my_picks():
     pick['Max']=knarflog.MAXPICKS
     if pick['Count']<pick['Max'] and models.current_dotw()<4:
         pick['Available']=sorted(myPicks('Available')['Picks'])
+    pick['Year']=knarflog.current_year()
     return jsonify({'picks': pick})
 
 @app.route('/api/ranking', methods=['GET'])
