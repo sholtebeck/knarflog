@@ -42,7 +42,11 @@ def current_year():
 
 def last_week():
     this_week=strftime("%y%U",gmtime())
-    return str(int(this_week)-1)
+    if this_week.endswith('01'):
+        last_week=int(this_week)-49
+    else:
+        last_week=int(this_week)-1
+    return str(last_week)
 
 # soup_results -- get results for a url
 def soup_results(url):
@@ -95,8 +99,8 @@ def get_picks():
     # initialize counter for each user
     for picker in pickers:
         for player in picks[picker][u'Picks']:
-            picks[player]={'Picker': picker, 'Points': points.get(player) }
-        picks[picker]={'Name':picker,'Count':0,'Points':points.get(picker),'Picks':[],'Week':0 }
+            picks[player]={'Picker': picker, 'Points': points.get(player,0) }
+        picks[picker]={'Name':picker,'Count':0,'Points':points.get(picker,0),'Picks':[],'Week':0 }
     return picks
 
 def get_picker_results(results):
@@ -118,12 +122,15 @@ def get_picker_results(results):
 
 # Get the totals for last week
 def get_points():
-    url="http://knarflog.appspot.com/api/rankings/"+last_week()
-    rankings=json_results(url)
-    # initialize counter for each user
-    for picker in rankings['pickers']+rankings['players']:
-        if picker.get('Name'):
-            points[picker['Name']]=picker.get('Points')
+    if current_week()=='1':
+        points={}
+    else:
+        url="http://knarflog.appspot.com/api/rankings/"+last_week()
+        rankings=json_results(url)
+        # initialize counter for each user
+        for picker in rankings['pickers']+rankings['players']:
+            if picker.get('Name'):
+                points[picker['Name']]=picker.get('Points')
     return points    
     
 def get_rank(position):
