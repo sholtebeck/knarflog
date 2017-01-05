@@ -198,7 +198,7 @@ def api_weekly():
     week_id=models.current_week()
     rankings = models.get_rankings(week_id)
     results = models.get_results(week_id)
-    loaded = False
+    loaded = True
     if not loaded:
         loaded = True
         taskqueue.add(url='/api/rankings', params={'week_id': week_id })
