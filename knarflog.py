@@ -34,7 +34,7 @@ def json_results(url):
 
 def current_week():
     this_week=strftime("%U",gmtime())
-    return str(int(this_week))
+    return str(int(this_week)-1)
 
 def current_year():
     this_week=strftime("%Y",gmtime())
