@@ -93,7 +93,8 @@ def get_players():
 
 # get_picks (loaded from api)
 def get_picks():
-    url="http://knarflog.appspot.com/api/picks"
+#    url="http://knarflog.appspot.com/api/picks"
+    url="http://localhost:9888/api/picks"
     picks=json_results(url).get('picks')
     points=get_points()
     # initialize counter for each user
