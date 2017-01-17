@@ -126,7 +126,7 @@ def get_points():
     if current_week()=='1':
         points={}
     else:
-        url="http://knarflog.appspot.com/api/rankings/"+last_week()
+        url="http://knarflog.appspot.com/api/ranking"
         rankings=json_results(url)
         # initialize counter for each user
         for picker in rankings['pickers']+rankings['players']:
