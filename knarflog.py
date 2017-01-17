@@ -43,9 +43,9 @@ def current_year():
 def last_week():
     this_week=strftime("%y%U",gmtime())
     if this_week.endswith('01'):
-        last_week=int(this_week)-49
+        last_week=int(this_week)-50
     else:
-        last_week=int(this_week)-1
+        last_week=int(this_week)-2
     return str(last_week)
 
 # soup_results -- get results for a url
