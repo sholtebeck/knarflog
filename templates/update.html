@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="knarflog">
+<head>
+  <title>knarflog:update</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+<form action="/update" method="post">
+      <label for="week_id">Week ID:</label>
+            <input type="text" id="week_id" name="week_id" size="6" value="{{week_id}}">
+			<input type="submit" value="Update">  {{message}}  <p>
+  <table>
+    <thead>
+      <tr><th>rankings</th><th>results</th></tr>
+    </thead>
+    <tbody>
+	<tr>
+	<td><textarea name="rankings" cols="40" rows="40">{{rankings}}</textarea></td>
+	<td><textarea name="results" cols="40" rows="40">{{results}}</textarea></td>
+	</tr>
+    </tbody>
+  </table>
+
+</form>  
+</body>
+</html>
