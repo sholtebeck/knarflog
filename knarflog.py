@@ -93,7 +93,7 @@ def get_players():
 
 # get_picks (loaded from api)
 def get_picks():
-#    url="http://localhost:9888/api/picks"
+#   url="http://localhost:8888/api/picks"
     url="http://knarflog.appspot.com/api/picks"
     picks=json_results(url).get('picks')
     points=get_points()
@@ -123,10 +123,9 @@ def get_picker_results(results):
 
 # Get the totals for last week
 def get_points():
-    if current_week()=='1':
-        points={}
-    else:
-        url="http://knarflog.appspot.com/api/ranking"
+    points={}
+    if current_week()>'1':
+        url="http://knarflog.appspot.com/api/rankings/"+last_week()
         rankings=json_results(url)
         # initialize counter for each user
         for picker in rankings['pickers']+rankings['players']:
@@ -150,7 +149,9 @@ def event_headers(soup):
         headers['id']=headers['url'].split('=')[1]
     headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
-    headers['Week']=headers['name'][-2:]
+    headers['Week']=int(headers['name'][-2:])
+    headers['Year']=headers['date'][-4:]
+    headers['week_id']=int(headers['Year'][-2:])*100+headers['Week']
 #   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
     headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
     return headers
@@ -266,7 +267,7 @@ def get_events(week_id):
     week=week_id % 100
     year=2000 + int(week_id/100)
     events_url='http://www.owgr.com/en/Events.aspx?year='+str(year)
-    soup = soup_results(events_url)
+    soup=soup_results(events_url)
     headers=event_headers(soup)
     keys=headers.get('columns')[:6]
     events=[]

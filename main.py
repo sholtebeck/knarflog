@@ -32,23 +32,27 @@ def get_current_user():
     return current_user.get('name')
 
 def getRankings(week_id=models.current_week()):
-    rankings = models.get_rankings(week_id)
+    rankings=memcache.get('rankings:'+str(week_id))
     if not rankings:
-        taskqueue.add(url='/api/rankings', params={'week_id': week_id })
-        rankings=None
-    else:
+        rankings = models.get_rankings(week_id)
+    if rankings:
         memcache.add('rankings:'+str(week_id), rankings)
     return rankings   
 
 def getResults(week_id=models.current_week()):
-    results = models.get_results(week_id)
+    rankings=memcache.get('results:'+str(week_id))
+    if not rankings:    
+        results = models.get_results(week_id)
     if not results:
         results = knarflog.get_events(week_id)
         memcache.add('results:'+str(week_id), results)
     return results   
 
 def myPicks(username):
-    picks=models.get_picks(username)
+    picks=memcache.get('picks:'+username)
+    if not picks:
+        picks=models.get_picks(username)
+        memcache.add('picks:'+username,picks)
     return picks   
 
 def getPicks():
@@ -125,6 +129,7 @@ def api_rankings(week_id=models.current_week()):
         results = knarflog.get_events(week_id)
         models.put_rankings(rankings,results)
         models.put_pickers(rankings[-1])
+        memcache.put('week_id',week_id)
     else:
         rankings=getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
@@ -194,17 +199,31 @@ def results(week_id=models.current_week()):
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
     return render_template('results.html',results=results,pickers=pickers)
+    
+@app.route('/update', methods=['GET','POST'])
+@app.route('/update/<int:week_id>', methods=['GET'])
+def update(week_id=models.current_week()):
+    if request.method=='POST':
+        rankings=request.form.get('rankings')
+        rankings_json=json.loads('{"rankings":'+rankings+'}')
+        results=request.form.get('results')
+        results_json=json.loads('{"results":'+results+'}')	
+        success=models.put_rankings(rankings_json['rankings'],results_json['results'])
+        return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message="updated")
+    else:
+        rankings_json=json.dumps(getRankings(week_id))
+        results_json=json.dumps(getResults(week_id))
+        return render_template('update.html', week_id=week_id,rankings=rankings_json,results=results_json)
 
 @app.route('/api/weekly', methods=['GET'])
 def api_weekly():
     week_id=models.current_week()
     rankings = models.get_rankings(week_id)
     results = models.get_results(week_id)
-    load_week = memcache.get('week')
+    load_week = memcache.get('week_id')
     if not load_week or load_week!=week_id:
         loaded = True
         taskqueue.add(url='/api/rankings', params={'week_id': week_id })
-        taskqueue.add(url='/api/results', params={'week_id': week_id })
     return jsonify({'week_id':week_id, 'loaded': loaded})
 
 @app.errorhandler(404)

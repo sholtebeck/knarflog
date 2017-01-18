@@ -71,7 +71,7 @@ def delete_ranking(week_id=current_week()-100):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
         ranking.delete()
-
+	
 def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
@@ -105,9 +105,11 @@ def put_pickers(pickdict):
         picker.put()
 
 def put_rankings(rankings,results):
-    week_no = int(current_week())
+    rank_year = int(rankings[0].get('date')[-2:])*100
+    rank_week =int(rankings[0].get('Week'))
+    week_no = rankings[0].get('week_id',current_week())
     ranking=Ranking(id=week_no)
-    ranking.week_id=int(rankings[0].get('Week'))
+    ranking.week_id=rank_week
     ranking.week_date=rankings[0].get('date')
     ranking.rankings_json=rankings
     ranking.results_json=results
