@@ -44,7 +44,7 @@ def getResults(week_id=models.current_week()):
     if not rankings:    
         results = models.get_results(week_id)
     if not results:
-        results = knarflog.get_events(week_id)
+#       results = knarflog.get_events(week_id)
         memcache.add('results:'+str(week_id), results)
     return results   
 
