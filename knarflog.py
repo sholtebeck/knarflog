@@ -149,7 +149,7 @@ def event_headers(soup):
         headers['id']=headers['url'].split('=')[1]
     headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
-    headers['Week']=int(headers['name'][-2:])
+    headers['Week']=int(headers['date'][-2:])
     headers['Year']=headers['date'][-4:]
     headers['week_id']=int(headers['Year'][-2:])*100+headers['Week']
 #   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
