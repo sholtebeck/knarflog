@@ -49,10 +49,8 @@ def getResults(week_id=models.current_week()):
     return results   
 
 def myPicks(username):
-    picks=memcache.get('picks:'+username)
-    if not picks:
-        picks=models.get_picks(username)
-        memcache.add('picks:'+username,picks)
+    picks=models.get_picks(username)
+    memcache.add('picks:'+username,picks)
     return picks   
 
 def getPicks():
@@ -208,7 +206,8 @@ def update(week_id=models.current_week()):
         rankings_json=json.loads('{"rankings":'+rankings+'}')
         results=request.form.get('results')
         results_json=json.loads('{"results":'+results+'}')	
-        success=models.put_rankings(rankings_json['rankings'],results_json['results'])
+        models.put_rankings(rankings_json['rankings'],results_json['results'])
+        models.put_pickers(rankings_json['rankings'][-1])
         return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message="updated")
     else:
         rankings_json=json.dumps(getRankings(week_id))
