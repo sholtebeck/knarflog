@@ -126,6 +126,7 @@ def get_points():
     points={}
     if current_week()>'1':
         url="http://knarflog.appspot.com/api/rankings/"+last_week()
+#       url="http://localhost:8888/api/rankings/"+last_week()
         rankings=json_results(url)
         # initialize counter for each user
         for picker in rankings['pickers']+rankings['players']:
@@ -149,8 +150,8 @@ def event_headers(soup):
         headers['id']=headers['url'].split('=')[1]
     headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
-    headers['Week']=int(headers['name'][-2:])
-    headers['Year']=headers['date'][-4:]
+    headers['Week']=int(headers['date'][-2:])
+    headers['Year']=str(current_year())
     headers['week_id']=int(headers['Year'][-2:])*100+headers['Week']
 #   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
     headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
