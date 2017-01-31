@@ -21,7 +21,7 @@ def xstr(string):
 
 def get_value(string):
     try:
-        value=float(string)
+        value=round(float(string),2)
     except:
         value=0.0
     return value
@@ -158,6 +158,23 @@ def event_headers(soup):
     headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
     return headers
 
+def ranking_headers(soup):
+    headers={}
+    if soup.title.string:
+        headers['title']=soup.title.string
+    headers['url']=str(soup.find('form').get('action'))
+    if headers['url'].find('=')>0:
+        headers['id']=headers['url'].split('=')[1]
+    headers['name']=soup.find('h2').string
+    headers['date']=str(soup.find('time').string)
+    headers['Week']=int(headers['name'][-2:])
+    headers['Year']=str(current_year())
+#   headers['Year']=headers['date'][-4:]
+    headers['week_id']=int(headers['Year'][-2:])*100+headers['Week']
+#   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
+    headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
+    return headers
+	
 def event_results(row, keys):
     values=[xstr(td.string) for td in row.findAll('td')]
     event=dict(zip(keys,values))
@@ -189,7 +206,7 @@ def player_results(row, keys):
     player['Rank']=get_rank(str(player.get('Pos')))
     player['Ctry']=str(row.find('img').get('title'))
     player['ID']=int(row.find('a').get('href').rsplit('=')[-1])
-    player['Points']=float(player.get('Ranking Points',0))
+    player['Points']=get_value(player.get('Ranking Points',0))
     return player
 
 def get_player(player_id):
@@ -211,7 +228,7 @@ def get_rankings():
     picks['Available']={'Count':0, 'Picks':[] }
     ranking_url="http://www.owgr.com/ranking"
     soup=soup_results(ranking_url)
-    rankings=[event_headers(soup)]
+    rankings=[ranking_headers(soup)]
     for row in soup.findAll('tr'):
         player=player_rankings(row)
         player_name=player.get('Name')
