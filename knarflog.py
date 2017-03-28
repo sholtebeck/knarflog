@@ -81,12 +81,13 @@ def get_players():
             player['rank']=int(row[0])
             player['name']=row[1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
-            player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
-            if get_value(row[4]):
+            if len(row)>=5:           
+                player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
                 player['odds']=get_value(row[4])
-            if get_value(row[5]):
                 player['picked']=True
             else:
+                player['hotpoints']=0.0
+                player['odds']=999
                 player['picked']=False
             players.append(player)
     return players
@@ -174,7 +175,7 @@ def ranking_headers(soup):
 #   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
     headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
     return headers
-	
+    
 def event_results(row, keys):
     values=[xstr(td.string) for td in row.findAll('td')]
     event=dict(zip(keys,values))
@@ -300,3 +301,10 @@ def get_events(week_id):
                      events.append(event)
     return events
 
+def dump_rankings():
+    ranking=get_rankings()
+    with open('../rankings.json', 'w') as outfile:
+        json.dump(rankings, outfile)
+    results=get_events(ranking[0]['week_id'])
+    with open('../results.json', 'w') as outfile:
+        json.dump(results, outfile)
