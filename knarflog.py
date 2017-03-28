@@ -53,7 +53,11 @@ def soup_results(url):
     page=urllib2.urlopen(url)
     soup = BeautifulSoup(page.read())
     return soup
-
+def get_bool(input):
+    if input in ('true',True,1):
+        return True
+    else:
+        return False
 # get_field (loaded from api)
 def get_event():
     events_url='https://docs.google.com/spreadsheets/d/1rb_attQJRkfOuQSeg7Qq8GoYdgorpm-oQKK60AQY8J8/pub?single=true&gid=0&range=A2:E2&output=csv'
@@ -82,9 +86,9 @@ def get_players():
             player['name']=row[1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
             if len(row)>=5:           
-                player['hotpoints']=int(row[3].replace(',','').replace('-','0'))
+                player['hotpoints']=get_value(row[3].replace(',','').replace('-','0'))
                 player['odds']=get_value(row[4])
-                player['picked']=True
+                player['picked']=get_bool(row[5])
             else:
                 player['hotpoints']=0.0
                 player['odds']=999
