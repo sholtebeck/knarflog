@@ -86,9 +86,10 @@ def get_players():
             player={'rownum':rownum }
             player['rank']=int(row[0])
             player['name']=row[1]
+            player['lastname']=row[1].split(" ")[-1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
             if len(row)>=5:           
-                player['hotpoints']=get_value(row[3].replace(',','').replace('-','0'))
+                player['country']=row[3]
                 player['odds']=get_value(row[4])
                 player['picked']=int(row[5])
             else:
