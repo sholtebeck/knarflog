@@ -15,9 +15,9 @@
     <thead>
       <tr><th colspan="7">{{event.name}}</th></tr>
       <tr><th>#</th>
-          <th><a href="#" ng-click="orderProp='lname'">Player Name</a></th>	
-          <th><a href="#" ng-click="orderProp='-points'">Points</a></th>	
+          <th><a href="#" ng-click="orderProp='name'">Player Name</a></th>	
           <th><a href="#" ng-click="orderProp='country'">Country</a></th>
+          <th><a href="#" ng-click="orderProp='-points'">Points</a></th>	
           <th><a href="#" ng-click="orderProp='rank'">World Rank</a></th>
           <th><a href="#" ng-click="orderProp='odds'">Odds</a></th>
           <th><a href="#" ng-click="orderProp='picked'">Picked</a></th>         </tr>
@@ -26,8 +26,8 @@
       <tr ng-repeat="player in players | filter:query |orderBy:orderProp">
         <td>{{$index + 1}}</td>
         <td>{{player.name}}</td>
-        <td>{{player.points |number:2}}</td>
         <td>{{player.country }}</td>
+        <td>{{player.points |number:2}}</td>
         <td>{{player.rank}}</td>
         <td>{{player.odds}}/1</td>
         <td>{{player.picked}}</td>
