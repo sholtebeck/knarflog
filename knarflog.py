@@ -53,13 +53,13 @@ def soup_results(url):
     page=urllib2.urlopen(url)
     soup = BeautifulSoup(page.read())
     return soup
-	
+    
 def get_bool(input):
     if input in ('true',True,1,'1'):
         return True
     else:
         return False
-		
+        
 # get_field (loaded from api)
 def get_event():
     events_url='https://docs.google.com/spreadsheets/d/1rb_attQJRkfOuQSeg7Qq8GoYdgorpm-oQKK60AQY8J8/pub?single=true&gid=0&range=A2:E2&output=csv'
@@ -306,6 +306,37 @@ def get_events(week_id):
                  if results:
                      event['Results']=results
                      events.append(event)
+    return events
+
+def major_event(event):
+    event_id=(event['Year']-2000)*100
+    if event['Week']<20:
+        event_id+=4
+        event_name=str(event['Year'])+" Masters"
+    elif event['Week']<25:
+        event_id+=6
+        event_name=str(event['Year'])+" US Open"
+    elif event['Week']<30:
+        event_id+=7
+        event_name=str(event['Year'])+" Open Championship"
+    else:
+        event_id+=8
+        event_name=str(event['Year'])+" PGA Championship"
+    new_event=json_results('http://skipflog.appspot.com/picks?event_id='+str(event_id))
+    new_event["url"]="http://www.owgr.com"+event["url"]
+    return new_event
+    
+def get_majors(year):
+    events_url='http://www.owgr.com/events?pageNo=1&pageSize=400&tour=Maj&year='+str(year)
+    soup=soup_results(events_url)
+    headers=event_headers(soup)
+    keys=headers.get('columns')[:6]
+    events=[]
+    for row in soup.findAll('tr'):
+        if row.find(id="ctl5"):
+            event=event_results(row,keys)
+            if event.get("Points",0)>=100:
+                events.append(major_event(event))
     return events
 
 def dump_rankings():

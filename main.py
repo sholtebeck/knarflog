@@ -40,8 +40,8 @@ def getRankings(week_id=models.current_week()):
     return rankings   
 
 def getResults(week_id=models.current_week()):
-    rankings=memcache.get('results:'+str(week_id))
-    if not rankings:    
+    results=memcache.get('results:'+str(week_id))
+    if not results:    
         results = models.get_results(week_id)
     if not results:
 #       results = knarflog.get_events(week_id)
@@ -122,12 +122,15 @@ def api_ranking(size=100):
 @app.route('/api/rankings', methods=['GET','POST'])
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
 def api_rankings(week_id=models.current_week()):
-    if request.method=='POST':      
-        rankings = knarflog.get_rankings()
-        results = knarflog.get_events(week_id)
-        models.put_rankings(rankings,results)
-        models.put_pickers(rankings[-1])
-        memcache.put('week_id',week_id)
+    if request.method=='POST':  
+        try:    
+            rankings = knarflog.get_rankings()
+            results = knarflog.get_events(week_id)
+            models.put_rankings(rankings,results)
+            models.put_pickers(rankings[-1])
+            memcache.add('week_id',week_id)
+        except:
+            pass
     else:
         rankings=getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
