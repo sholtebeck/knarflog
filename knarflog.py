@@ -268,7 +268,7 @@ def get_results(event_id):
     event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
     soup=soup_results(event_url)
     headers=event_headers(soup)
-    keys=headers.get('columns')
+    keys=headers.get('columns')[6:]
     players=[]
     for row in soup.findAll('tr'):
         add_player=False
@@ -342,7 +342,7 @@ def get_majors(year):
 def dump_rankings():
     ranking=get_rankings()
     with open('../rankings.json', 'w') as outfile:
-        json.dump(rankings, outfile)
+        json.dump(ranking, outfile)
     results=get_events(ranking[0]['week_id'])
     with open('../results.json', 'w') as outfile:
         json.dump(results, outfile)

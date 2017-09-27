@@ -21,8 +21,9 @@ class Picker(ndb.Model):
 
 # Current Week (YYWW)
 def current_week():
-    this_week=strftime("%y%U",gmtime())
-    return int(this_week)-1 
+    this_year=datetime.date.today().isocalendar()[0]%100
+    this_week=datetime.date.today().isocalendar()[1]
+    return (this_year*100)+(this_week-1)
 
 # Current Day of the week (0=Mon,1=Tue,..,6=Sun)
 def current_dotw():
