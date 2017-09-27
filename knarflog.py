@@ -1,6 +1,6 @@
 # Get OWGR Results
 from time import gmtime,strftime
-import urllib2
+import datetime, urllib2
 # External modules (bs4)
 import json,csv,sys
 sys.path[0:0] = ['lib']
@@ -41,12 +41,23 @@ def current_year():
     return str(int(this_week))    
 
 def last_week():
-    this_week=strftime("%y%U",gmtime())
-    if this_week.endswith('01'):
-        last_week=int(this_week)-50
-    else:
-        last_week=int(this_week)-2
+    this_year=datetime.date.today().isocalendar()[0]%100
+    this_week=datetime.date.today().isocalendar()[1]
+    last_week=(this_year*100)+(this_week-2)
     return str(last_week)
+
+# last_weeks_rankings (loaded from api)
+def last_weeks_rankings():
+    url="http://knarflog.appspot.com/api/rankings/"+last_week()
+    rankings=json_results(url)
+    lastweek={}
+    ranknum=0
+    for player in rankings["players"]:
+        lastweek[player['Name']]={"Rank": player["Rank"], "Points": player['Points'] }
+    for picker in [picker for picker in rankings["pickers"] if picker.get("Name")]:
+        ranknum+=1
+        lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
+    return lastweek
 
 # soup_results -- get results for a url
 def soup_results(url):
@@ -101,15 +112,13 @@ def get_players():
 
 # get_picks (loaded from api)
 def get_picks():
-#   url="http://localhost:8888/api/picks"
     url="http://knarflog.appspot.com/api/picks"
     picks=json_results(url).get('picks')
-    points=get_points()
     # initialize counter for each user
     for picker in pickers:
         for player in picks[picker][u'Picks']:
-            picks[player]={'Picker': picker, 'Points': points.get(player,0) }
-        picks[picker]={'Name':picker,'Count':0,'Points':points.get(picker,0),'Picks':[],'Week':0 }
+            picks[player]={'Picker': picker, 'Points': 0.0 }
+        picks[picker]={'Name':picker,'Count':0,'Points': 0.0 ,'Picks':[],'Week':0 }
     return picks
 
 def get_picker_results(results):
@@ -128,20 +137,7 @@ def get_picker_results(results):
     else:
         picker_results[pickers[0]]['Rank']=2
     return picker_results
-
-# Get the totals for last week
-def get_points():
-    points={}
-    if current_week()>'1':
-        url="http://knarflog.appspot.com/api/rankings/"+last_week()
-#       url="http://localhost:8888/api/rankings/"+last_week()
-        rankings=json_results(url)
-        # initialize counter for each user
-        for picker in rankings['pickers']+rankings['players']:
-            if picker.get('Name'):
-                points[picker['Name']]=picker.get('Points')
-    return points    
-    
+   
 def get_rank(position):
     if not position or not position.replace('T','').isdigit():
         return 0
@@ -232,7 +228,11 @@ def get_ranking(size):
     return ranking
 
 def get_rankings():
+    prevweek=last_weeks_rankings()
     picks=get_picks()
+    for pick in picks:
+        if prevweek.get(pick):
+            picks[pick]["Points"]=round(prevweek[pick]["Points"],2)
     picks['Available']={'Count':0, 'Picks':[] }
     ranking_url="http://www.owgr.com/ranking"
     soup=soup_results(ranking_url)
@@ -240,21 +240,24 @@ def get_rankings():
     for row in soup.findAll('tr'):
         player=player_rankings(row)
         player_name=player.get('Name')
+        if player_name in prevweek.keys():
+            player['Last Week']=prevweek[player_name]["Rank"]
+            player['Week']=round(player['Points']-prevweek[player_name]['Points'],2)
         if player_name in picks.keys():
             picker=picks[player_name]['Picker']
-            player['Week']=player['Points']-picks[player_name]['Points']
             player['Picker']=picker
             player['Pickno']=picks[picker]['Count']
             if picks[picker]['Count']<MAXPICKS:
                 picks[picker]['Picks'].append(player_name)
                 picks[picker]['Count']+=1
-                picks[picker]['Week']+=player['Week']
-                picks[picker]['Points']+=player['Week']
+                picks[picker]['Week']=round(picks[picker]['Week']+player['Week'],2)
+                picks[picker]['Points']=round(picks[picker]['Points']+player['Week'],2)
         else:
             if player_name:
                 picks['Available']['Picks'].append(player_name)
                 picks['Available']['Count']+=1 
-        if player and player_name:          
+        if player and player_name:  
+            player["Week"]=round(player["Week"],2)        
             rankings.append(player)
     # append totals to the end
     rankings.append({key:value for key,value in picks.iteritems() if key in pickers})
