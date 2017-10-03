@@ -106,7 +106,6 @@ def put_pickers(pickdict):
         picker.put()
 
 def put_rankings(rankings,results):
-    rank_year = int(rankings[0].get('date')[-2:])*100
     rank_week =int(rankings[0].get('Week'))
     week_no = rankings[0].get('week_id',current_week())
     ranking=Ranking(id=week_no)
