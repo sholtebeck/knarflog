@@ -169,7 +169,7 @@ def ranking_headers(soup):
     headers['url']=str(soup.find('form').get('action'))
     if headers['url'].find('=')>0:
         headers['id']=headers['url'].split('=')[1]
-    headers['name']=soup.find('h2').string
+    headers['name']=[head.string for head in soup.findAll('h2') if head.string.startswith('WEEK')][0]
     headers['date']=str(soup.find('time').string)
     headers['Week']=int(headers['name'][-2:])
     headers['Year']=str(current_year())
