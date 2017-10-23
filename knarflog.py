@@ -58,6 +58,12 @@ def last_weeks_rankings():
         ranknum+=1
         lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
     return lastweek
+	
+# this_weeks_rankings (loaded from api)
+def this_weeks_rankings():
+    url="http://knarflog.appspot.com/api/rankings"
+    rankings=json_results(url)
+    return rankings
 
 # soup_results -- get results for a url
 def soup_results(url):

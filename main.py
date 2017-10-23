@@ -37,14 +37,15 @@ def getRankings(week_id=models.current_week()):
         rankings = models.get_rankings(week_id)
     if rankings:
         memcache.add('rankings:'+str(week_id), rankings)
+    else:
+        rankings = models.get_rankings(week_id-1)
     return rankings   
 
 def getResults(week_id=models.current_week()):
     results=memcache.get('results:'+str(week_id))
     if not results:    
         results = models.get_results(week_id)
-    if not results:
-#       results = knarflog.get_events(week_id)
+    if results:
         memcache.add('results:'+str(week_id), results)
     return results   
 
@@ -125,8 +126,10 @@ def api_rankings(week_id=models.current_week()):
     if request.method=='POST':  
         try:    
             rankings = knarflog.get_rankings()
+            memcache.add('rankings:'+str(week_id),rankings)
             results = knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
+            memcache.add('results:'+str(week_id), results)
             models.put_pickers(rankings[-1])
             memcache.add('week_id',week_id)
         except:
@@ -208,7 +211,7 @@ def update(week_id=models.current_week()):
         rankings=request.form.get('rankings')
         rankings_json=json.loads('{"rankings":'+rankings+'}')
         results=request.form.get('results')
-        results_json=json.loads('{"results":'+results+'}')	
+        results_json=json.loads('{"results":'+results+'}')  
         models.put_rankings(rankings_json['rankings'],results_json['results'])
         models.put_pickers(rankings_json['rankings'][-1])
         return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message="updated")
@@ -219,14 +222,15 @@ def update(week_id=models.current_week()):
 
 @app.route('/api/weekly', methods=['GET'])
 def api_weekly():
-    week_id=models.current_week()
-    rankings = models.get_rankings(week_id)
-    results = models.get_results(week_id)
-    load_week = memcache.get('week_id')
-    loaded=False
-    if not load_week or load_week!=week_id:
+    loaded=load_week=False
+    ranking=knarflog.get_ranking(10)
+    week_id=ranking[0].get('week_id')
+    rankings = knarflog.this_weeks_rankings()
+    if rankings and rankings.get('headers'):
+        load_week = rankings.get('headers').get('week_id',0)
+    if load_week!=week_id:
         loaded = True
-        taskqueue.add(url='/api/rankings', params={'week_id': week_id })
+        taskqueue.add(url='/api/rankings', params={'week_id': models.current_week() })
     return jsonify({'week_id':week_id, 'loaded': loaded})
 
 @app.errorhandler(404)
