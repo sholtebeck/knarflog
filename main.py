@@ -225,13 +225,13 @@ def api_weekly():
     loaded=load_week=False
     ranking=knarflog.get_ranking(10)
     week_id=ranking[0].get('week_id')
-    rankings = knarflog.this_weeks_rankings()
-    if rankings and rankings.get('headers'):
-        load_week = rankings.get('headers').get('week_id',0)
-    if load_week!=week_id:
-        loaded = True
+    rankings = models.get_rankings(week_id)
+    if rankings:
+        load_week=rankings[0].get('week_id',week_id)
+    else:
+        loaded=True
         taskqueue.add(url='/api/rankings', params={'week_id': models.current_week() })
-    return jsonify({'week_id':week_id, 'loaded': loaded})
+    return jsonify({'week_id':week_id, 'loaded':loaded})
 
 @app.errorhandler(404)
 def page_not_found(e):
