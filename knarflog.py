@@ -219,7 +219,7 @@ def get_player(player_id):
 def get_ranking(size):
     ranking_url="http://www.owgr.com/ranking?pageSize="+str(size)
     soup=soup_results(ranking_url)
-    ranking=[event_headers(soup)]
+    ranking=[ranking_headers(soup)]
     for row in soup.findAll('tr'):
         player=player_rankings(row)
         player_name=player.get('Name')
