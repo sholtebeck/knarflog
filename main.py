@@ -79,15 +79,12 @@ def main():
 def about():
     return render_template('about.html', title='about', log=logon_info())
 
-@app.route('/api/init', methods=['GET','POST'])
-def api_init():
-    rankings = knarflog.get_rankings()
-    models.init_rankings(rankings)
-    models.put_pickers(rankings[-1])
-    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
-    week_id = models.current_week()
-    taskqueue.add(url='/api/results', params={'week_id': week_id })
-    return jsonify({ 'week_id': week_id, 'results': getResults(week_id) })
+@app.route('/api/delete', methods=['GET','POST'])
+@app.route('/api/delete/<int:week_id>', methods=['GET'])
+def api_delete(week_id=models.current_week()):
+    if request.method=='POST':      
+        result=models.delete_ranking(week_id)
+    return jsonify({ 'week_id': week_id, 'result': result })
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -135,6 +132,7 @@ def api_rankings(week_id=models.current_week()):
             results = knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
             models.put_pickers(rankings[-1])
+            models.delete_ranking(week_id-300)
             memcache.add('week_id',week_id)
         except:
             pass
@@ -219,22 +217,25 @@ def update(week_id=models.current_week()):
         models.put_rankings(rankings_json['rankings'],results_json['results'])
         models.put_pickers(rankings_json['rankings'][-1])
         return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message="updated")
-    else:
+    elif users.get_current_user():      
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
         return render_template('update.html', week_id=week_id,rankings=rankings_json,results=results_json)
+    else:
+        return redirect(users.create_login_url("/update"), code=302)
 
 @app.route('/api/weekly', methods=['GET'])
 def api_weekly():
     loaded=load_week=False
-    ranking=knarflog.get_ranking(10)
-    week_id=ranking[0].get('week_id')
+    week_id=models.current_week()
     rankings = models.get_rankings(week_id)
     if rankings:
         load_week=rankings[0].get('week_id',week_id)
     else:
-        loaded=True
-        taskqueue.add(url='/api/rankings', params={'week_id': models.current_week() })
+        ranking=knarflog.get_ranking(10)
+        if week_id == ranking[0].get('week_id'): 
+            loaded=True
+            taskqueue.add(url='/api/rankings', params={'week_id': models.current_week() })
     return jsonify({'week_id':week_id, 'loaded':loaded})
 
 @app.errorhandler(404)

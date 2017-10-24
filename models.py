@@ -68,10 +68,13 @@ def all_picks():
         picks[picker]=get_picks(picker)
     return picks
 
-def delete_ranking(week_id=current_week()-100):
+def delete_ranking(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
     if ranking:
-        ranking.delete()
+        ranking.key.delete()
+        return True
+    else:
+        return False
 	
 def get_rankings(week_id=current_week()):
     ranking = Ranking.get_by_id(week_id)
