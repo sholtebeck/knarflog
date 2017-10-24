@@ -5,10 +5,14 @@
   <link rel="stylesheet" href="/app/app.css">
 </head>
 <body>
-<form action="/update" method="post">
+<form action="/update/{{week_id}}" method="post">
       <label for="week_id">Week ID:</label>
             <input type="text" id="week_id" name="week_id" size="6" value="{{week_id}}">
-			<input type="submit" value="Update">  {{message}}  <p>
+			<input type="submit" name="submit" value="Update">
+{% if message!="Deleted" %}
+			<input type="submit" name="submit" value="Delete">
+{% endif %}			
+{{message}}  <p>
   <table>
     <thead>
       <tr><th>rankings</th><th>results</th></tr>

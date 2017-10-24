@@ -207,22 +207,27 @@ def results(week_id=models.current_week()):
     return render_template('results.html',results=results,pickers=pickers)
     
 @app.route('/update', methods=['GET','POST'])
-@app.route('/update/<int:week_id>', methods=['GET'])
+@app.route('/update/<int:week_id>', methods=['GET','POST'])
 def update(week_id=models.current_week()):
     if request.method=='POST':
+        action=request.form.get('submit')
         rankings=request.form.get('rankings')
-        rankings_json=json.loads('{"rankings":'+rankings+'}')
         results=request.form.get('results')
-        results_json=json.loads('{"results":'+results+'}')  
-        models.put_rankings(rankings_json['rankings'],results_json['results'])
-        models.put_pickers(rankings_json['rankings'][-1])
-        return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message="updated")
+        if action=="Update":
+            rankings_json=json.loads('{"rankings":'+rankings+'}')
+            results_json=json.loads('{"results":'+results+'}')  
+            models.put_rankings(rankings_json['rankings'],results_json['results'])
+            models.put_pickers(rankings_json['rankings'][-1])
+        elif action=="Delete":
+            models.delete_ranking(week_id)
+            rankings=results=None
+        return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message=action.lower()+"d")
     elif users.get_current_user():      
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
         return render_template('update.html', week_id=week_id,rankings=rankings_json,results=results_json)
     else:
-        return redirect(users.create_login_url("/update"), code=302)
+        return redirect(users.create_login_url("/update/"+str(week_id)), code=302)
 
 @app.route('/api/weekly', methods=['GET'])
 def api_weekly():
