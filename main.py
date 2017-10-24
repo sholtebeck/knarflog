@@ -32,21 +32,27 @@ def get_current_user():
     return current_user.get('name')
 
 def getRankings(week_id=models.current_week()):
-    rankings=memcache.get('rankings:'+str(week_id))
-    if not rankings:
-        rankings = models.get_rankings(week_id)
-    if rankings:
-        memcache.add('rankings:'+str(week_id), rankings)
+    rankings_key='rankings:'+str(week_id)
+    rankingstr = memcache.get(rankings_key)
+    if rankingstr:
+        rankings=json.loads(rankingstr)    
     else:
-        rankings = models.get_rankings(week_id-1)
+        rankings = models.get_rankings(week_id)
+        if rankings:
+            memcache.add(rankings_key, str(json.dumps(rankings)))
+        else:
+            rankings = models.get_rankings(week_id-1)
     return rankings   
 
 def getResults(week_id=models.current_week()):
-    results=memcache.get('results:'+str(week_id))
-    if not results:    
+    results_key='results:'+str(week_id)
+    resultstr = memcache.get(results_key)
+    if resultstr:
+        results=json.loads(resultstr)    
+    else:    
         results = models.get_results(week_id)
-    if results:
-        memcache.add('results:'+str(week_id), results)
+        if results:
+            memcache.add(results_key, str(json.dumps(results)))
     return results   
 
 def myPicks(username):
@@ -126,10 +132,8 @@ def api_rankings(week_id=models.current_week()):
     if request.method=='POST':  
         try:    
             rankings = knarflog.get_rankings()
-            memcache.add('rankings:'+str(week_id),rankings)
             results = knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
-            memcache.add('results:'+str(week_id), results)
             models.put_pickers(rankings[-1])
             memcache.add('week_id',week_id)
         except:
