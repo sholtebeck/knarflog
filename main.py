@@ -225,7 +225,7 @@ def update(week_id=models.current_week()):
     elif users.get_current_user():      
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
-        return render_template('update.html', week_id=week_id,rankings=rankings_json,results=results_json)
+        return render_template('update.html', current_week=models.current_week(), week_id=week_id,rankings=rankings_json,results=results_json)
     else:
         return redirect(users.create_login_url("/update/"+str(week_id)), code=302)
 
