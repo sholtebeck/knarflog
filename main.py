@@ -208,7 +208,7 @@ def results(week_id=models.current_week()):
     
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
-def update(week_id=models.current_week()):
+def update(week_id=0):
     if request.method=='POST':
         action=request.form.get('submit')
         rankings=request.form.get('rankings')
@@ -223,6 +223,8 @@ def update(week_id=models.current_week()):
             rankings=results=None
         return render_template('update.html', week_id=week_id,rankings=rankings,results=results,message=action.lower()+"d")
     elif users.get_current_user():      
+        if not week_id:
+            week_id=models.current_week()
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
         return render_template('update.html', current_week=models.current_week(), week_id=week_id,rankings=rankings_json,results=results_json)
