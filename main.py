@@ -125,7 +125,7 @@ def api_ranking(size=100):
 
 @app.route('/api/rankings', methods=['GET','POST'])
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
-def api_rankings(week_id=models.current_week()):
+def api_rankings(week_id=0):
     if request.method=='POST':  
         try:    
             rankings = knarflog.get_rankings()
@@ -137,12 +137,16 @@ def api_rankings(week_id=models.current_week()):
         except:
             pass
     else:
+        if not week_id:
+            week_id=models.current_week()
         rankings=getRankings(week_id)
     return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
 @app.route('/api/results', methods=['GET','POST'])
 @app.route('/api/results/<int:week_id>', methods=['GET'])
-def api_results(week_id=models.current_week()):
+def api_results(week_id=0):
+    if not week_id:
+        week_id=models.current_week()
     results = getResults(week_id)
     if request.method=='POST':      
         results = knarflog.get_events(week_id)
@@ -186,7 +190,9 @@ def player_drop():
 
 @app.route('/ranking', methods=['GET'])
 @app.route('/ranking/<int:week_id>', methods=['GET'])
-def ranking(week_id=models.current_week()):
+def ranking(week_id=0):
+    if not week_id:
+        week_id=models.current_week()
     rankings = getRankings(week_id)
     header=rankings[0]
     header['Year']=models.current_year()
@@ -198,7 +204,9 @@ def ranking(week_id=models.current_week()):
 
 @app.route('/results', methods=['GET'])
 @app.route('/results/<int:week_id>', methods=['GET'])
-def results(week_id=models.current_week()):
+def results(week_id=0):
+    if not week_id:
+        week_id=models.current_week()
     results = getResults(week_id)
     pickres = knarflog.get_picker_results(results)
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
@@ -209,6 +217,8 @@ def results(week_id=models.current_week()):
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
 def update(week_id=0):
+    if not week_id:
+        week_id=models.current_week()
     if request.method=='POST':
         action=request.form.get('submit')
         rankings=request.form.get('rankings')
