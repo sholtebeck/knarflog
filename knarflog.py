@@ -54,7 +54,7 @@ def last_weeks_rankings():
     ranknum=0
     for player in rankings["players"]:
         lastweek[player['Name']]={"Rank": player["Rank"], "Points": player['Points'] }
-    for picker in [picker for picker in rankings["pickers"] if picker.get("Name")]:
+    for picker in [picker for picker in rankings["pickers"] if picker in pickers]:
         ranknum+=1
         lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
     return lastweek
@@ -160,12 +160,12 @@ def event_headers(soup):
         headers['id']=headers['url'].split('=')[1]
     headers['name']=soup.find('h2').string
     headers['date']=str(soup.find('time').string)
-    headers['Week']=int(headers['date'][-2:])
+    headers['Week']=int(soup.find("span", { "class" : "week" }).string.split()[-1])
     headers['Year']=str(current_year())
 #   headers['Year']=headers['date'][-4:]
     headers['week_id']=int(headers['Year'][-2:])*100+headers['Week']
 #   headers['columns']=[xstr(column.string) for column in soup.find('thead').findAll('th')]
-    headers['columns']=[xstr(column.string) for column in soup.findAll('th')]
+    headers['columns']=[xstr(column.string) for column in soup.findAll('th',{"class":"header"})]
     return headers
 
 def ranking_headers(soup):
@@ -277,13 +277,13 @@ def get_results(event_id):
     event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
     soup=soup_results(event_url)
     headers=event_headers(soup)
-    keys=headers.get('columns')[6:]
+    event_keys=['Pos', 'Ctry', 'Name', 'R1', 'R2', 'R3', 'R4', 'Agg', 'Ranking Points']
     players=[]
     for row in soup.findAll('tr'):
         add_player=False
         name = row.find('td',{'class': "name"})
         if name and name.string:
-            player=player_results(row,keys)
+            player=player_results(row,event_keys)
             if player.get("Rank")==1:
                 add_player=True
             if player.get('Name') in picks.keys():
@@ -302,7 +302,7 @@ def get_results(event_id):
 def get_events(week_id):
     week=week_id % 100
     year=2000 + int(week_id/100)
-    events_url='http://www.owgr.com/en/Events.aspx?year='+str(year)
+    events_url='http://www.owgr.com/events?year='+str(year)
     soup=soup_results(events_url)
     headers=event_headers(soup)
     keys=headers.get('columns')[:6]
