@@ -122,9 +122,10 @@ def get_picks():
     picks=json_results(url).get('picks')
     # initialize counter for each user
     for picker in pickers:
+        points=picks[picker]['Points']
         for player in picks[picker][u'Picks']:
             picks[player]={'Picker': picker, 'Points': 0.0 }
-        picks[picker]={'Name':picker,'Count':0,'Points': 0.0 ,'Picks':[],'Week':0 }
+        picks[picker]={'Name':picker,'Count':0,'Points': points ,'Picks':[],'Week':0 }
     return picks
 
 def get_picker_results(results):
