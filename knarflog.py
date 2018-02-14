@@ -1,6 +1,6 @@
 # Get OWGR Results
 from time import gmtime,strftime
-import datetime, urllib2
+import datetime, urllib, urllib2
 # External modules (bs4)
 import json,csv,sys
 sys.path[0:0] = ['lib']
@@ -356,3 +356,13 @@ def dump_rankings():
     results=get_events(ranking[0]['week_id'])
     with open('../results.json', 'w') as outfile:
         json.dump(results, outfile)
+
+def post_results():
+    ranking=get_rankings()
+    week_id=ranking[0]['week_id']
+    rankingstr=json.dumps(ranking)
+    resultstr=json.dumps(get_events(week_id))
+    query_args = { 'week_id': week_id, 'rankings': rankingstr, 'results': resultstr, 'submit':'Update' }
+    encoded_args = urllib.urlencode(query_args)
+    update_url="http://knarflog.appspot.com/update"
+    result=urllib2.urlopen(update_url, encoded_args)

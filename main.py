@@ -237,6 +237,8 @@ def update(week_id=0):
             week_id=models.current_week()
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
+        if len(results_json)<10:
+            results_json=json.dumps(knarflog.get_events(week_id))
         return render_template('update.html', current_week=models.current_week(), week_id=week_id,rankings=rankings_json,results=results_json)
     else:
         return redirect(users.create_login_url("/update/"+str(week_id)), code=302)
