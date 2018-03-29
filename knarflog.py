@@ -366,3 +366,4 @@ def post_results():
     encoded_args = urllib.urlencode(query_args)
     update_url="http://knarflog.appspot.com/update"
     result=urllib2.urlopen(update_url, encoded_args)
+    return True
