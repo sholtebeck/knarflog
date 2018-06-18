@@ -129,6 +129,7 @@ def api_rankings(week_id=0):
     if request.method=='POST':  
         try:    
             rankings = knarflog.get_rankings()
+            week_id=rankings[0]['week_id']
             results = knarflog.get_events(week_id)
             models.put_rankings(rankings,results)
             models.put_pickers(rankings[-1])
