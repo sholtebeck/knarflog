@@ -235,11 +235,17 @@ def get_ranking(size):
     return ranking
 
 def get_rankings():
-    prevweek=last_weeks_rankings()
+    # Get previous weeks ranking (if not week 0)
+    if current_week()=='0':
+        prevweek={}
+    else:
+        prevweek=last_weeks_rankings()
     picks=get_picks()
     for pick in picks:
         if prevweek.get(pick):
             picks[pick]["Points"]=round(prevweek[pick]["Points"],2)
+        else:
+            picks[pick]["Points"]=0.0
     picks['Available']={'Count':0, 'Picks':[] }
     ranking_url="http://www.owgr.com/ranking"
     soup=soup_results(ranking_url)
