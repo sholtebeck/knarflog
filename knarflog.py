@@ -54,7 +54,7 @@ def last_weeks_rankings():
     ranknum=0
     for player in rankings["players"]:
         lastweek[player['Name']]={"Rank": player["Rank"], "Points": player['Points'] }
-    for picker in [picker for picker in rankings["pickers"] if picker in pickers]:
+    for picker in [picker for picker in rankings["pickers"] if picker.get('Name') in pickers]:
         ranknum+=1
         lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
     return lastweek
