@@ -104,7 +104,7 @@ def soup_results(url):
     while not soup and timeout < 1000:
         try:  
             page=urllib2.urlopen(url,timeout=180)
-            soup = BeautifulSoup(page.read())
+            soup = BeautifulSoup(page.read(),"html.parser")
         except:
             timeout = timeout * 2
     return soup
@@ -171,8 +171,6 @@ def get_weeks(year):
     return weeks
 
 def get_picker_results(results):
-    if results and results.get('pickers'):
-        return results['pickers']
     picker_results={}
     for picker in pickers:
         picker_results[picker]={'Name':picker,'Count':0,'Points':0,'Rank':1 }
