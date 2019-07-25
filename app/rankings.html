@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="app.css">
 </head>
 <body ng-controller="rankingsController">
+Search: <input ng-model="query">   Week Ending: <select ng-model="week" ng-options="week.week_date for week in weeks track by week.week_id" ng-change="setWeek()"></select> 
+<p>
   <table>
     <thead>
       <tr><th colspan="7">World Golf Rankings for {{headers.date}} (Week {{headers.Week}})</th></tr>

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests of Beautiful Soup as a whole."""
 
+from pdb import set_trace
 import logging
 import unittest
 import sys
+import tempfile
+
 from bs4 import (
     BeautifulSoup,
     BeautifulStoneSoup,
@@ -15,8 +18,13 @@ from bs4.element import (
     NamespacedAttribute,
     )
 import bs4.dammit
-from bs4.dammit import EntitySubstitution, UnicodeDammit
+from bs4.dammit import (
+    EntitySubstitution,
+    UnicodeDammit,
+    EncodingDetector,
+)
 from bs4.testing import (
+    default_builder,
     SoupTest,
     skipIf,
 )
@@ -28,10 +36,113 @@ try:
 except ImportError, e:
     LXML_PRESENT = False
 
-PYTHON_2_PRE_2_7 = (sys.version_info < (2,7))
 PYTHON_3_PRE_3_2 = (sys.version_info[0] == 3 and sys.version_info < (3,2))
 
-class TestDeprecatedConstructorArguments(SoupTest):
+class TestConstructor(SoupTest):
+
+    def test_short_unicode_input(self):
+        data = u"<h1>éé</h1>"
+        soup = self.soup(data)
+        self.assertEqual(u"éé", soup.h1.string)
+
+    def test_embedded_null(self):
+        data = u"<h1>foo\0bar</h1>"
+        soup = self.soup(data)
+        self.assertEqual(u"foo\0bar", soup.h1.string)
+
+    def test_exclude_encodings(self):
+        utf8_data = u"Räksmörgås".encode("utf-8")
+        soup = self.soup(utf8_data, exclude_encodings=["utf-8"])
+        self.assertEqual("windows-1252", soup.original_encoding)
+
+    def test_custom_builder_class(self):
+        # Verify that you can pass in a custom Builder class and
+        # it'll be instantiated with the appropriate keyword arguments.
+        class Mock(object):
+            def __init__(self, **kwargs):
+                self.called_with = kwargs
+                self.is_xml = True
+            def initialize_soup(self, soup):
+                pass
+            def prepare_markup(self, *args, **kwargs):
+                return ''
+                
+        kwargs = dict(
+            var="value",
+            # This is a deprecated BS3-era keyword argument, which
+            # will be stripped out.
+            convertEntities=True,
+        )
+        with warnings.catch_warnings(record=True):
+            soup = BeautifulSoup('', builder=Mock, **kwargs)
+        assert isinstance(soup.builder, Mock)
+        self.assertEqual(dict(var="value"), soup.builder.called_with)
+
+        # You can also instantiate the TreeBuilder yourself. In this
+        # case, that specific object is used and any keyword arguments
+        # to the BeautifulSoup constructor are ignored.
+        builder = Mock(**kwargs)
+        with warnings.catch_warnings(record=True) as w:
+            soup = BeautifulSoup(
+                '', builder=builder, ignored_value=True,
+            )
+        msg = str(w[0].message)
+        assert msg.startswith("Keyword arguments to the BeautifulSoup constructor will be ignored.")
+        self.assertEqual(builder, soup.builder)
+        self.assertEqual(kwargs, builder.called_with)
+
+    def test_cdata_list_attributes(self):
+        # Most attribute values are represented as scalars, but the
+        # HTML standard says that some attributes, like 'class' have
+        # space-separated lists as values.
+        markup = '<a id=" an id " class=" a class "></a>'
+        soup = self.soup(markup)
+
+        # Note that the spaces are stripped for 'class' but not for 'id'.
+        a = soup.a
+        self.assertEqual(" an id ", a['id'])
+        self.assertEqual(["a", "class"], a['class'])
+
+        # TreeBuilder takes an argument called 'mutli_valued_attributes'  which lets
+        # you customize or disable this. As always, you can customize the TreeBuilder
+        # by passing in a keyword argument to the BeautifulSoup constructor.
+        soup = self.soup(markup, builder=default_builder, multi_valued_attributes=None)
+        self.assertEqual(" a class ", soup.a['class'])
+
+        # Here are two ways of saying that `id` is a multi-valued
+        # attribute in this context, but 'class' is not.
+        for switcheroo in ({'*': 'id'}, {'a': 'id'}):
+            with warnings.catch_warnings(record=True) as w:
+                # This will create a warning about not explicitly
+                # specifying a parser, but we'll ignore it.
+                soup = self.soup(markup, builder=None, multi_valued_attributes=switcheroo)
+            a = soup.a
+            self.assertEqual(["an", "id"], a['id'])
+            self.assertEqual(" a class ", a['class'])
+
+        
+class TestWarnings(SoupTest):
+
+    def _no_parser_specified(self, s, is_there=True):
+        v = s.startswith(BeautifulSoup.NO_PARSER_SPECIFIED_WARNING[:80])
+        self.assertTrue(v)
+
+    def test_warning_if_no_parser_specified(self):
+        with warnings.catch_warnings(record=True) as w:
+            soup = self.soup("<a><b></b></a>")
+        msg = str(w[0].message)
+        self._assert_no_parser_specified(msg)
+
+    def test_warning_if_parser_specified_too_vague(self):
+        with warnings.catch_warnings(record=True) as w:
+            soup = self.soup("<a><b></b></a>", "html")
+        msg = str(w[0].message)
+        self._assert_no_parser_specified(msg)
+
+    def test_no_warning_if_explicit_parser_specified(self):
+        with warnings.catch_warnings(record=True) as w:
+            soup = self.soup("<a><b></b></a>", "html.parser")
+        self.assertEqual([], w)
 
     def test_parseOnlyThese_renamed_to_parse_only(self):
         with warnings.catch_warnings(record=True) as w:
@@ -54,14 +165,52 @@ class TestDeprecatedConstructorArguments(SoupTest):
         self.assertRaises(
             TypeError, self.soup, "<a>", no_such_argument=True)
 
-    @skipIf(
-        not LXML_PRESENT,
-        "lxml not present, not testing BeautifulStoneSoup.")
-    def test_beautifulstonesoup(self):
+class TestWarnings(SoupTest):
+
+    def test_disk_file_warning(self):
+        filehandle = tempfile.NamedTemporaryFile()
+        filename = filehandle.name
+        try:
+            with warnings.catch_warnings(record=True) as w:
+                soup = self.soup(filename)
+            msg = str(w[0].message)
+            self.assertTrue("looks like a filename" in msg)
+        finally:
+            filehandle.close()
+
+        # The file no longer exists, so Beautiful Soup will no longer issue the warning.
         with warnings.catch_warnings(record=True) as w:
-            soup = BeautifulStoneSoup("<markup>")
-            self.assertTrue(isinstance(soup, BeautifulSoup))
-            self.assertTrue("BeautifulStoneSoup class is deprecated")
+            soup = self.soup(filename)
+        self.assertEqual(0, len(w))
+
+    def test_url_warning_with_bytes_url(self):
+        with warnings.catch_warnings(record=True) as warning_list:
+            soup = self.soup(b"http://www.crummybytes.com/")
+        # Be aware this isn't the only warning that can be raised during
+        # execution..
+        self.assertTrue(any("looks like a URL" in str(w.message) 
+            for w in warning_list))
+
+    def test_url_warning_with_unicode_url(self):
+        with warnings.catch_warnings(record=True) as warning_list:
+            # note - this url must differ from the bytes one otherwise
+            # python's warnings system swallows the second warning
+            soup = self.soup(u"http://www.crummyunicode.com/")
+        self.assertTrue(any("looks like a URL" in str(w.message) 
+            for w in warning_list))
+
+    def test_url_warning_with_bytes_and_space(self):
+        with warnings.catch_warnings(record=True) as warning_list:
+            soup = self.soup(b"http://www.crummybytes.com/ is great")
+        self.assertFalse(any("looks like a URL" in str(w.message) 
+            for w in warning_list))
+
+    def test_url_warning_with_unicode_and_space(self):
+        with warnings.catch_warnings(record=True) as warning_list:
+            soup = self.soup(u"http://www.crummyuncode.com/ is great")
+        self.assertFalse(any("looks like a URL" in str(w.message) 
+            for w in warning_list))
+
 
 class TestSelectiveParsing(SoupTest):
 
@@ -125,11 +274,16 @@ class TestEntitySubstitution(unittest.TestCase):
     def test_xml_quoting_handles_ampersands(self):
         self.assertEqual(self.sub.substitute_xml("AT&T"), "AT&amp;T")
 
-    def test_xml_quoting_ignores_ampersands_when_they_are_part_of_an_entity(self):
+    def test_xml_quoting_including_ampersands_when_they_are_part_of_an_entity(self):
         self.assertEqual(
             self.sub.substitute_xml("&Aacute;T&T"),
-            "&Aacute;T&amp;T")
+            "&amp;Aacute;T&amp;T")
 
+    def test_xml_quoting_ignoring_ampersands_when_they_are_part_of_an_entity(self):
+        self.assertEqual(
+            self.sub.substitute_xml_containing_entities("&Aacute;T&T"),
+            "&Aacute;T&amp;T")
+       
     def test_quotes_not_html_substituted(self):
         """There's no need to do this except inside attribute values."""
         text = 'Bob\'s "bar"'
@@ -151,13 +305,23 @@ class TestEncodingConversion(SoupTest):
 
     def test_ascii_in_unicode_out(self):
         # ASCII input is converted to Unicode. The original_encoding
-        # attribute is set.
-        ascii = b"<foo>a</foo>"
-        soup_from_ascii = self.soup(ascii)
-        unicode_output = soup_from_ascii.decode()
-        self.assertTrue(isinstance(unicode_output, unicode))
-        self.assertEqual(unicode_output, self.document_for(ascii.decode()))
-        self.assertEqual(soup_from_ascii.original_encoding.lower(), "ascii")
+        # attribute is set to 'utf-8', a superset of ASCII.
+        chardet = bs4.dammit.chardet_dammit
+        logging.disable(logging.WARNING)
+        try:
+            def noop(str):
+                return None
+            # Disable chardet, which will realize that the ASCII is ASCII.
+            bs4.dammit.chardet_dammit = noop
+            ascii = b"<foo>a</foo>"
+            soup_from_ascii = self.soup(ascii)
+            unicode_output = soup_from_ascii.decode()
+            self.assertTrue(isinstance(unicode_output, unicode))
+            self.assertEqual(unicode_output, self.document_for(ascii.decode()))
+            self.assertEqual(soup_from_ascii.original_encoding.lower(), "utf-8")
+        finally:
+            logging.disable(logging.NOTSET)
+            bs4.dammit.chardet_dammit = chardet
 
     def test_unicode_in_unicode_out(self):
         # Unicode input is left alone. The original_encoding attribute
@@ -180,14 +344,19 @@ class TestEncodingConversion(SoupTest):
         self.assertEqual(soup_from_unicode.encode('utf-8'), self.utf8_data)
 
     @skipIf(
-        PYTHON_2_PRE_2_7 or PYTHON_3_PRE_3_2,
+        PYTHON_3_PRE_3_2,
         "Bad HTMLParser detected; skipping test of non-ASCII characters in attribute name.")
     def test_attribute_name_containing_unicode_characters(self):
         markup = u'<div><a \N{SNOWMAN}="snowman"></a></div>'
         self.assertEqual(self.soup(markup).div.encode("utf8"), markup.encode("utf8"))
 
 class TestUnicodeDammit(unittest.TestCase):
-    """Standalone tests of Unicode, Dammit."""
+    """Standalone tests of UnicodeDammit."""
+
+    def test_unicode_input(self):
+        markup = u"I'm already Unicode! \N{SNOWMAN}"
+        dammit = UnicodeDammit(markup)
+        self.assertEqual(dammit.unicode_markup, markup)
 
     def test_smart_quotes_to_unicode(self):
         markup = b"<foo>\x91\x92\x93\x94</foo>"
@@ -214,10 +383,11 @@ class TestUnicodeDammit(unittest.TestCase):
             dammit.unicode_markup, """<foo>''""</foo>""")
 
     def test_detect_utf8(self):
-        utf8 = b"\xc3\xa9"
+        utf8 = b"Sacr\xc3\xa9 bleu! \xe2\x98\x83"
         dammit = UnicodeDammit(utf8)
-        self.assertEqual(dammit.unicode_markup, u'\xe9')
         self.assertEqual(dammit.original_encoding.lower(), 'utf-8')
+        self.assertEqual(dammit.unicode_markup, u'Sacr\xe9 bleu! \N{SNOWMAN}')
+
 
     def test_convert_hebrew(self):
         hebrew = b"\xed\xe5\xec\xf9"
@@ -241,6 +411,26 @@ class TestUnicodeDammit(unittest.TestCase):
         for bad_encoding in ['.utf8', '...', 'utF---16.!']:
             dammit = UnicodeDammit(utf8_data, [bad_encoding])
             self.assertEqual(dammit.original_encoding.lower(), 'utf-8')
+
+    def test_exclude_encodings(self):
+        # This is UTF-8.
+        utf8_data = u"Räksmörgås".encode("utf-8")
+
+        # But if we exclude UTF-8 from consideration, the guess is
+        # Windows-1252.
+        dammit = UnicodeDammit(utf8_data, exclude_encodings=["utf-8"])
+        self.assertEqual(dammit.original_encoding.lower(), 'windows-1252')
+
+        # And if we exclude that, there is no valid guess at all.
+        dammit = UnicodeDammit(
+            utf8_data, exclude_encodings=["utf-8", "windows-1252"])
+        self.assertEqual(dammit.original_encoding, None)
+
+    def test_encoding_detector_replaces_junk_in_encoding_name_with_replacement_character(self):
+        detected = EncodingDetector(
+            b'<?xml version="1.0" encoding="UTF-\xdb" ?>')
+        encodings = list(detected.encodings)
+        assert u'utf-\N{REPLACEMENT CHARACTER}' in encodings
 
     def test_detect_html5_style_meta_tag(self):
 
@@ -288,9 +478,8 @@ class TestUnicodeDammit(unittest.TestCase):
             logging.disable(logging.NOTSET)
             bs4.dammit.chardet_dammit = chardet
 
-    def test_sniffed_xml_encoding(self):
-        # A document written in UTF-16LE will be converted by a different
-        # code path that sniffs the byte order markers.
+    def test_byte_order_mark_removed(self):
+        # A document written in UTF-16LE will have its byte order marker stripped.
         data = b'\xff\xfe<\x00a\x00>\x00\xe1\x00\xe9\x00<\x00/\x00a\x00>\x00'
         dammit = UnicodeDammit(data)
         self.assertEqual(u"<a>áé</a>", dammit.unicode_markup)

@@ -26,7 +26,8 @@ $(document).ready(function() {
 });
 </script> 
 <body>
-<h3><script>document.write(new Date().getFullYear())</script> World Golf Rankings (knarflog.appspot.com)</h3>
+<h3><script>document.write(new Date().getFullYear())</script> World Golf Rankings (knarflog.appspot.com) </h3>
+<h5><div ng-controller="weeksController"><b>Last Update:</b> {{ last_update }}</div></h5>
   <ul class="tabs"> 
         <li class="active" rel="tab1">Picks</li>
         <li rel="tab2">Rankings </li>
@@ -35,7 +36,7 @@ $(document).ready(function() {
 <div class="tab_container"> 
   <div id="tab1" class="tab_content">
   <div ng-controller="picksController"> 
-  {{ message }}
+  <span ng-bind="message"></span>
   <table>
     <thead>
       <tr><th colspan="3"><span ng-bind="picks.Name"></span>'s Picks</tr>
@@ -62,13 +63,13 @@ $(document).ready(function() {
     <span ng-if="picks.Count>=picks.Max">so you need to drop {{picks.Count-picks.Max+1}} before picking another player</span> 
     
     <span ng-if="picks.Count<picks.Max">so you can pick {{picks.Max-picks.Count}} more</span>
-    <span ng-if="!picks.Available"> (next Mon-Wed). </span>.
     </div>
 </div><!-- #tab1 -->
 
 <div id="tab2" class="tab_content"> 
 <div ng-controller="rankingsController">
-   Search: <input ng-model="query">   
+   Search: <input ng-model="query">   Week Ending: <select ng-model="week" ng-options="week.week_date for week in weeks track by week.week_id" ng-change="setWeek()"></select> 
+<p>
   <p>
   <table>
     <thead>
@@ -120,7 +121,7 @@ $(document).ready(function() {
 </div><!-- #tab2 -->
 <div id="tab3" class="tab_content"> 
 <div ng-controller="resultsController">
-   Search: <input ng-model="query">   
+   Week Ending: <select ng-model="week" ng-options="week.week_date for week in weeks track by week.week_id" ng-change="setWeek()"></select> Search: <input ng-model="query">   
   <p>
 <div ng-repeat='event in results'>
   <table>

@@ -53,9 +53,24 @@ knarflog.controller('rankingsController', ['$scope', '$http',
     $http.get('/api/user').success(function(data) {
       $scope.user = data.user;
     });      
-    
+   $http.get('/api/weeks').success(function(data) {
+      $scope.weeks = data.weeks;
+	  $scope.week_id = data.week_id;
+      $scope.week = data.weeks[0];
+    });         
     $scope.orderProp = '-Points';
     $scope.year = new Date().getFullYear();
+
+	$scope.setWeek = function()
+    {
+	  $scope.week = this.week;
+      $http.get('/api/rankings/'+ $scope.week.week_id ).success(function(data) {
+			$scope.headers = data.headers;
+			$scope.players = data.players;
+			$scope.pickers = data.pickers;
+		});
+    };
+
   }]);
 
 knarflog.controller('resultsController', ['$scope', '$http',
@@ -65,5 +80,38 @@ knarflog.controller('resultsController', ['$scope', '$http',
       $scope.pickers = data.pickers;
     });
     
-    $scope.orderProp = 'Rank';
+   $scope.orderProp = '-Points';
+   $http.get('/api/weeks').success(function(data) {
+      $scope.weeks = data.weeks;
+	  $scope.week_id = data.week_id;
+      $scope.week = data.weeks[0];
+    });         
+
+	$scope.setWeek = function()
+    {
+	  $scope.week = this.week;
+      $http.get('/api/results/'+ $scope.week.week_id ).success(function(data) {
+			$scope.results = data.results;
+			$scope.pickers = data.pickers;
+		});
+    };
+	
+  }]);
+
+knarflog.controller('weeksController', ['$scope', '$http',
+  function($scope, $http) {
+    $http.get('/api/weeks').success(function(data) {
+      $scope.weeks = data.weeks;
+      $scope.last_update = data.last_update;
+      $scope.week_no = data.week_no;
+    });
+    
+    $scope.orderProp = '-week_id';
+	
+	$scope.setWeek = function()
+    {
+      alert("setting "+ this.week.week_date );
+	  $scope.week_id = this.week.week_id;
+      $http.post("/api/weeks", { "week_id": $scope.week_id });
+    };
   }]);

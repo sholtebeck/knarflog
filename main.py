@@ -15,7 +15,7 @@ picks_url='/picks'
 # the App Engine WSGI application server.
 def logon_info():
     # check for login
-    names={'sholtebeck':'Steve','mholtebeck':'Mark','skipfloguser':'Steve','mholtebeckcava':'Mark' }
+    names={'sholtebeck':'Steve','mholtebeck':'Mark','skipfloguser':'Steve' }
     log={'nickname':'guest', 'url_link':users.create_login_url(request.url), 'url_title': 'Login' }
     if users.get_current_user():
         log['nickname']=nickname=users.get_current_user().nickname()
@@ -66,6 +66,19 @@ def getPicks():
         picks=models.all_picks()
         memcache.add('picks',picks)
     return picks   
+	
+def defaultWeek():
+    week_id = memcache.get('week_id')
+    if not week_id:
+        week_id=models.current_week()
+    return week_id  
+
+def getWeeks():
+    weeks = memcache.get('weeks')
+    if not weeks:
+        weeks=models.get_weeks()
+        memcache.add('weeks',weeks)
+    return weeks  
     
 @app.route('/')
 def main():
@@ -85,11 +98,6 @@ def api_delete(week_id=models.current_week()):
     if request.method=='POST':      
         result=models.delete_ranking(week_id)
     return jsonify({ 'week_id': week_id, 'result': result })
-
-@app.errorhandler(404)
-def page_not_found(e):
-    models.put_pickers(rankings[-1])
-    return jsonify({'headers': rankings[0],'players': rankings[1:-1], 'pickers': rankings[-1].values() })
 
 @app.route('/api/picks', methods=['GET'])
 @app.route('/api/picks/<picker>', methods=['GET'])
@@ -125,15 +133,15 @@ def api_ranking(size=100):
 
 @app.route('/api/rankings', methods=['GET','POST'])
 @app.route('/api/rankings/<int:week_id>', methods=['GET'])
-def api_rankings(week_id=0):
+def api_rankings(week_id=defaultWeek()):
     if request.method=='POST':  
         try:    
             rankings = knarflog.get_rankings()
             week_id=rankings[0]['week_id']
-            results = knarflog.get_events(week_id)
+            results = knarflog.get_results()
             models.put_rankings(rankings,results)
             models.put_pickers(rankings[-1])
-            models.delete_ranking(week_id-300)
+            models.delete_ranking(week_id-200)
             memcache.add('week_id',week_id)
         except:
             pass
@@ -145,14 +153,15 @@ def api_rankings(week_id=0):
 
 @app.route('/api/results', methods=['GET','POST'])
 @app.route('/api/results/<int:week_id>', methods=['GET'])
-def api_results(week_id=0):
+def api_results(week_id=defaultWeek()):
     if not week_id:
         week_id=models.current_week()
     results = getResults(week_id)
     if request.method=='POST':      
-        results = knarflog.get_events(week_id)
+        results = knarflog.get_results()
         models.put_results(results)
-    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
+#    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
+    return jsonify( results )
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -213,7 +222,7 @@ def results(week_id=0):
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
-    return render_template('results.html',results=results,pickers=pickers)
+    return render_template('results.html',results=results.get("results"),pickers=pickers)
     
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
@@ -239,7 +248,7 @@ def update(week_id=0):
         rankings_json=json.dumps(getRankings(week_id))
         results_json=json.dumps(getResults(week_id))
         if len(results_json)<10:
-            results_json=json.dumps(knarflog.get_events(week_id))
+            results_json=json.dumps(knarflog.get_results())
         return render_template('update.html', current_week=models.current_week(), week_id=week_id,rankings=rankings_json,results=results_json)
     else:
         return redirect(users.create_login_url("/update/"+str(week_id)), code=302)
@@ -257,6 +266,14 @@ def api_weekly():
             loaded=True
             taskqueue.add(url='/api/rankings', params={'week_id': models.current_week() })
     return jsonify({'week_id':week_id, 'loaded':loaded})
+
+@app.route('/api/weeks', methods=['GET','POST'])
+def api_weeks():
+    if request.method=='POST':
+        week_id=json.loads(request.data).get('week_id')
+        memcache.add("week_id",week_id )
+    weeks=getWeeks()   	
+    return jsonify({'weeks': weeks, "last_update": weeks[0]['week_date'], "week_no": weeks[0]['week_id'] % 100 })
 
 @app.errorhandler(404)
 def page_not_found(e):
