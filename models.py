@@ -94,10 +94,11 @@ def get_results(week_id=current_week()):
 
 def get_weeks():
     weeks=[]
-    for ranking in Ranking.query().order(-Ranking.week_id).fetch(20): 	
-        week_no = ranking.week_id % 100
-        week={ 'week_id': ranking.week_id, 'week_date': ranking.week_date + " (Week " + str(week_no) + ")" }
-        weeks.append(week)
+    for ranking in Ranking.query().order(-Ranking.week_id).fetch(50):
+        if ranking.week_date and ranking.week_date.endswith(str(current_year())): 	
+            week_no = ranking.week_id % 100
+            week={ 'week_id': ranking.week_id, 'week_date': ranking.week_date + " (Week " + str(week_no) + ")" }
+            weeks.append(week)
     return weeks
 
 #Initialize Rankings for new year
@@ -132,3 +133,9 @@ def put_results(results):
     ranking.week_id=int(week_no)    
     ranking.results_json=results
     ranking.put()
+
+def update_week(week_id):
+    ranking = Ranking.get_by_id(week_id)
+    if ranking:
+        ranking.week_id = week_id
+        ranking.put()		
