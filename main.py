@@ -101,14 +101,14 @@ def api_delete(week_id=models.current_week()):
 
 @app.route('/api/mail', methods=['GET'])
 def api_mail(week_id=models.current_week()):
-    rankings_html=knarflog.fetch_tables('/rankings')
+    rankings_html=knarflog.fetch_tables(knarflog.ranking_url)
     event_name = knarflog.fetch_header(rankings_html)
     message = mail.EmailMessage(sender='admin@knarflog.appspotmail.com',subject=event_name)
-    message.to = "skipflog@googlegroups.com"
+    message.to = "sholtebeck@gmail.com"
     message.html=rankings_html+"<p>"
-    message.html+=knarflog.fetch_tables('/results')
+    message.html+=knarflog.fetch_tables(knarflog.results_url)
     message.send()   
-    return jsonify({ 'week_id': week_id, 'subject': event_name })
+    return jsonify({ 'from': message.sender, 'to':message.to, 'week_id': week_id, 'subject': message.subject })
 	
 @app.route('/api/picks', methods=['GET'])
 @app.route('/api/picks/<picker>', methods=['GET'])

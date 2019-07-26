@@ -10,6 +10,8 @@ pickers=(u'Mark',u'Steve')
 points={}
 picks={}
 debug=False
+ranking_url="http://knarflog.appspot.com/ranking"
+results_url="http://knarflog.appspot.com/results"
 
 def do_debug(string):
     if debug:
