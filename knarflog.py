@@ -10,8 +10,6 @@ pickers=(u'Mark',u'Steve')
 points={}
 picks={}
 debug=False
-ranking_url="http://knarflog.appspot.com/ranking"
-results_url="http://knarflog.appspot.com/results"
 
 def do_debug(string):
     if debug:
@@ -66,18 +64,6 @@ def last_weeks_rankings():
         lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
     return lastweek
 
-def fetch_tables(url):
-    page=soup_results(url)
-    tables=page.findAll('table')
-    results=''
-    for table in tables:
-        results=results+str(table)
-        results=results+"<p>"
-    return results[:-3]
-
-def fetch_header(html):
-    return str(BeautifulSoup(html,"html.parser").find('th').string)
-	
 # last_weeks_results (from owgr home page)
 def get_results():
     events=[]
@@ -118,7 +104,7 @@ def soup_results(url):
     while not soup and timeout < 1000:
         try:  
             page=urllib2.urlopen(url,timeout=180)
-            soup = BeautifulSoup(page.read(),"html.parser")
+            soup = BeautifulSoup(page.read())
         except:
             timeout = timeout * 2
     return soup
@@ -185,6 +171,8 @@ def get_weeks(year):
     return weeks
 
 def get_picker_results(results):
+    if results and results.get('pickers'):
+        return results['pickers']
     picker_results={}
     for picker in pickers:
         picker_results[picker]={'Name':picker,'Count':0,'Points':0,'Rank':1 }

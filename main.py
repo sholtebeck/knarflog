@@ -1,7 +1,7 @@
 import sys
 sys.path[0:0] = ['lib']
 from flask import Flask, abort,json,jsonify,render_template, redirect, request
-from google.appengine.api import memcache,mail,taskqueue,users
+from google.appengine.api import memcache,taskqueue,users
 import knarflog,datetime,models
 import logging
 
@@ -99,17 +99,6 @@ def api_delete(week_id=models.current_week()):
         result=models.delete_ranking(week_id)
     return jsonify({ 'week_id': week_id, 'result': result })
 
-@app.route('/api/mail', methods=['GET'])
-def api_mail(week_id=models.current_week()):
-    rankings_html=knarflog.fetch_tables(knarflog.ranking_url)
-    event_name = knarflog.fetch_header(rankings_html)
-    message = mail.EmailMessage(sender='admin@knarflog.appspotmail.com',subject=event_name)
-    message.to = "sholtebeck@gmail.com"
-    message.html=rankings_html+"<p>"
-    message.html+=knarflog.fetch_tables(knarflog.results_url)
-    message.send()   
-    return jsonify({ 'from': message.sender, 'to':message.to, 'week_id': week_id, 'subject': message.subject })
-	
 @app.route('/api/picks', methods=['GET'])
 @app.route('/api/picks/<picker>', methods=['GET'])
 def picks(picker=None):
@@ -171,7 +160,8 @@ def api_results(week_id=defaultWeek()):
     if request.method=='POST':      
         results = knarflog.get_results()
         models.put_results(results)
-    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
+#    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
+    return jsonify( results )
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -232,7 +222,7 @@ def results(week_id=0):
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
-    return render_template('results.html',results=results,pickers=pickers)
+    return render_template('results.html',results=results.get("results"),pickers=pickers)
     
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
@@ -289,4 +279,5 @@ def api_weeks():
 def page_not_found(e):
     """Return a custom 404 error."""
     return 'Sorry, nothing at this URL.', 404
+
 
