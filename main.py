@@ -1,7 +1,7 @@
 import sys
 sys.path[0:0] = ['lib']
 from flask import Flask, abort,json,jsonify,render_template, redirect, request
-from google.appengine.api import memcache,taskqueue,users
+from google.appengine.api import memcache,mail,taskqueue,users
 import knarflog,datetime,models
 import logging
 
@@ -99,6 +99,17 @@ def api_delete(week_id=models.current_week()):
         result=models.delete_ranking(week_id)
     return jsonify({ 'week_id': week_id, 'result': result })
 
+@app.route('/api/mail', methods=['GET'])
+def api_mail(week_id=models.current_week()):
+    rankings_html=knarflog.fetch_tables('/rankings')
+    event_name = knarflog.fetch_header(rankings_html)
+    message = mail.EmailMessage(sender='admin@knarflog.appspotmail.com',subject=event_name)
+    message.to = "skipflog@googlegroups.com"
+    message.html=rankings_html+"<p>"
+    message.html+=knarflog.fetch_tables('/results')
+    message.send()   
+    return jsonify({ 'week_id': week_id, 'subject': event_name })
+	
 @app.route('/api/picks', methods=['GET'])
 @app.route('/api/picks/<picker>', methods=['GET'])
 def picks(picker=None):

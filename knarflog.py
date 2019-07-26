@@ -64,6 +64,18 @@ def last_weeks_rankings():
         lastweek[picker['Name']]={"Points": round(picker.get("Points",0.0),2), "Rank": ranknum }
     return lastweek
 
+def fetch_tables(url):
+    page=soup_results(url)
+    tables=page.findAll('table')
+    results=''
+    for table in tables:
+        results=results+str(table)
+        results=results+"<p>"
+    return results[:-3]
+
+def fetch_header(html):
+    return str(BeautifulSoup(html,"html.parser").find('th').string)
+	
 # last_weeks_results (from owgr home page)
 def get_results():
     events=[]
