@@ -118,7 +118,7 @@ def soup_results(url):
     while not soup and timeout < 1000:
         try:  
             page=urllib2.urlopen(url,timeout=180)
-            soup = BeautifulSoup(page.read())
+            soup = BeautifulSoup(page.read(),"html.parser")
         except:
             timeout = timeout * 2
     return soup
