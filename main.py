@@ -171,8 +171,7 @@ def api_results(week_id=defaultWeek()):
     if request.method=='POST':      
         results = knarflog.get_results()
         models.put_results(results)
-#    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
-    return jsonify( results )
+    return jsonify({ 'results': results, 'pickers': knarflog.get_picker_results(results) })
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -233,7 +232,7 @@ def results(week_id=0):
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
-    return render_template('results.html',results=results.get("results"),pickers=pickers)
+    return render_template('results.html',results=results,pickers=pickers)
     
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
