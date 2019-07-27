@@ -222,7 +222,7 @@ def results(week_id=0):
     pickers=[picker for picker in pickres.values() if picker.get('Name')]
     if pickers[1]['Points']>pickers[0]['Points']:
         pickers.reverse()
-    return render_template('results.html',results=results.get("results"),pickers=pickers)
+    return render_template('results.html',results=results,pickers=pickers)
     
 @app.route('/update', methods=['GET','POST'])
 @app.route('/update/<int:week_id>', methods=['GET','POST'])
