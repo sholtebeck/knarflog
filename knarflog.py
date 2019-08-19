@@ -81,7 +81,8 @@ def get_results():
             event={header:value for (header,value) in zip(headers,values) if value }
             if event.get('Winner') and event.get('SOF')>50:	
                 urls=[u.get('href') for u in row.find_all('a')]
-                event['ID']=int(max([url.rsplit('=')[-1] for url in urls if 'Event' in url]) )
+                event['URL']=max([url for url in urls if 'Event' in url]) 
+                event['ID']=int(event['URL'].rsplit('=')[-1] )
                 event['Week']=week_no
                 event['Date']=week_date
                 results=event_results(event['ID'])
@@ -100,13 +101,14 @@ def this_weeks_rankings():
 # soup_results -- get results for a url
 def soup_results(url):
     soup = None
-    timeout = 2
-    while not soup and timeout < 1000:
-        try:  
-            page=urllib2.urlopen(url,timeout=180)
-            soup = BeautifulSoup(page.read())
+    tout = 32
+    while not soup and tout < 1000:
+        try: 
+            do_debug(url + ' :' + str(tout) )		
+            page=urllib2.urlopen(url,timeout=tout)
+            soup = BeautifulSoup(page.read(),"html.parser")
         except:
-            timeout = timeout * 2
+            tout *= 2
     return soup
     
 def get_bool(input):
@@ -196,7 +198,7 @@ def get_rank(position):
 
 def event_headers(soup):
     headers={}
-    if soup.title.string:
+    if soup and soup.title:
         headers['title']=soup.title.string
     headers['url']=str(soup.find('form').get('action'))
     if headers['url'].find('=')>0:
@@ -323,11 +325,13 @@ def get_rankings():
 def event_results(event_id):
     picks=get_picks()
     num_picks=0
-    event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
-    soup=soup_results(event_url)
-    headers=event_headers(soup)
     event_keys=['Pos', 'Ctry', 'Name', 'R1', 'R2', 'R3', 'R4', 'Agg', 'Ranking Points']
     players=[]
+    event_url='http://www.owgr.com/Events/EventResult.aspx?eventId='+str(event_id)
+    soup=soup_results(event_url)
+    if not soup:
+        return players	
+    headers=event_headers(soup)
     for row in soup.findAll('tr'):
         add_player=False
         name = row.find('td',{'class': "name"})
