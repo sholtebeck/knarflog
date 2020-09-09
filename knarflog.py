@@ -29,6 +29,8 @@ def get_value(string):
         value=round(float(string),2)
     except:
         value=0.0
+    if abs(value-int(value))<0.01:
+        value=int(value)
     return value
 
 # json_results -- get results for a url
@@ -141,7 +143,7 @@ def get_players():
         if row:
             rownum += 1
             player={'rownum':rownum }
-            player['rank']=int(row[0])
+            player['rank']=get_value(row[0])
             player['name']=row[1]
             player['lastname']=row[1].split(" ")[-1]
             player['points']=get_value(row[2].replace(',','').replace('-','0'))
