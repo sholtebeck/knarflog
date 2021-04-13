@@ -29,7 +29,7 @@ def get_value(string):
         value=round(float(string),2)
     except:
         value=0.0
-    if abs(value-int(value))<0.01:
+    if abs(value-int(value))<0.001:
         value=int(value)
     return value
 
@@ -41,16 +41,17 @@ def json_results(url):
 
 def current_week():
     this_week=strftime("%U",gmtime())
-    return str(int(this_week)-1)
+    return str(int(this_week))
 
 def current_year():
-    this_week=strftime("%Y",gmtime())
-    return str(int(this_week))    
+    this_year=strftime("%Y",gmtime())
+    return str(int(this_year))    
 
+# last week (pull from api, not calendar)
 def last_week():
-    this_year=datetime.date.today().isocalendar()[0]%100
-    this_week=datetime.date.today().isocalendar()[1]
-    last_week=(this_year*100)+(this_week-2)
+    url="http://knarflog.appspot.com/api/weeks"
+    weeks=json_results(url)
+    last_week=weeks['weeks'][0]['week_id']
     return str(last_week)
 
 # last_weeks_rankings (loaded from api)
@@ -73,27 +74,26 @@ def get_results():
     soup=soup_results(owgr_url)
     last_week=[xstr(t.string) for t in soup.find_all('time') if t.string.endswith(current_year())][0].split()
     week_no = xstr(last_week[4])
-    week_date = ' '.join(last_week[5:])	
+    week_date = ' '.join(last_week[5:]) 
     for row in soup.find_all('tr'):
         if row.find('th'):
             headers=[xstr(th.string) for th in row.find_all('th') if th.string]
-            headers[0]="Event Name"			
+            headers[0]="Event Name"         
         elif row.find('td'):
             values=[xstr(td.string) for td in row.find_all('td')]
             event={header:value for (header,value) in zip(headers,values) if value }
-            if event.get('Winner') and event.get('SOF')>50:	
+            if event.get('Winner') and event.get('SOF')>50: 
                 urls=[u.get('href') for u in row.find_all('a')]
-                event['URL']=max([url for url in urls if 'Event' in url]) 
-                event['ID']=int(event['URL'].rsplit('=')[-1] )
+                event['ID']=int(max([url.rsplit('=')[-1] for url in urls if 'Event' in url]) )
                 event['Week']=week_no
                 event['Date']=week_date
                 results=event_results(event['ID'])
                 if len(results)>0:
                     event['Points']=results[0].get("Points")   
-                    event['Results']=results					
+                    event['Results']=results                    
                     events.append(event)
     return events
-	
+    
 # this_weeks_rankings (loaded from api)
 def this_weeks_rankings():
     url="http://knarflog.appspot.com/api/rankings"
@@ -103,14 +103,13 @@ def this_weeks_rankings():
 # soup_results -- get results for a url
 def soup_results(url):
     soup = None
-    tout = 32
-    while not soup and tout < 1000:
-        try: 
-            do_debug(url + ' :' + str(tout) )		
-            page=urllib2.urlopen(url,timeout=tout)
+    timeout = 2
+    while not soup and timeout < 1000:
+        try:  
+            page=urllib2.urlopen(url,timeout=180)
             soup = BeautifulSoup(page.read(),"html.parser")
         except:
-            tout *= 2
+            timeout = timeout * 2
     return soup
     
 def get_bool(input):
@@ -200,7 +199,7 @@ def get_rank(position):
 
 def event_headers(soup):
     headers={}
-    if soup and soup.title:
+    if soup.title.string:
         headers['title']=soup.title.string
     headers['url']=str(soup.find('form').get('action'))
     if headers['url'].find('=')>0:
@@ -236,8 +235,8 @@ def row_results(row, keys):
     values=[xstr(td.string) for td in row.findAll('td')]
     event=dict(zip(keys,values))
     if row.find(id="ctl5"):
-        event['url']=str(row.find(id="ctl5").find('a').get('href'))
-        event['ID']=int(event.get('url').rsplit('=')[-1])
+        event['owgr_url']=str(row.find(id="ctl5").find('a').get('href'))
+        event['ID']=int(event.get('owgr_url').rsplit('=')[-1])
     event['Points']=int(event.get("SOF",0))
     return event
 
@@ -280,9 +279,9 @@ def get_ranking(size):
             ranking.append(player)
     return ranking
 
-def get_rankings():
+def get_rankings(cur_week=current_week()):
     # Get previous weeks ranking (if not week 0)
-    if current_week()=='0':
+    if cur_week=='0':
         prevweek={}
     else:
         prevweek=last_weeks_rankings()
@@ -327,13 +326,11 @@ def get_rankings():
 def event_results(event_id):
     picks=get_picks()
     num_picks=0
+    event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
+    soup=soup_results(event_url)
+    headers=event_headers(soup)
     event_keys=['Pos', 'Ctry', 'Name', 'R1', 'R2', 'R3', 'R4', 'Agg', 'Ranking Points']
     players=[]
-    event_url='http://www.owgr.com/Events/EventResult.aspx?eventId='+str(event_id)
-    soup=soup_results(event_url)
-    if not soup:
-        return players	
-    headers=event_headers(soup)
     for row in soup.findAll('tr'):
         add_player=False
         name = row.find('td',{'class': "name"})
@@ -354,39 +351,65 @@ def event_results(event_id):
         players=[]
     return players
 
+#major results (grab all players, no picks)
+def major_results(event_id):
+    event_url='http://www.owgr.com/en/Events/EventResult.aspx?eventid='+str(event_id)
+    soup=soup_results(event_url)
+    headers=event_headers(soup)
+    event_keys=['Pos', 'Ctry', 'Name', 'R1', 'R2', 'R3', 'R4', 'Agg', 'Ranking Points']
+    players=[]
+    for row in soup.findAll('tr'):
+        add_player=False
+        name = row.find('td',{'class': "name"})
+        if name and name.string:
+            player=player_results(row,event_keys)
+            players.append(player)
+    return players
+
 def get_events(week_id=0):
     return get_results()
 
-def major_event(event):
-    event_id=(event['Year']-2000)*100
-    if event['Week']<20:
+def major_event(year, n, event):
+    event_year=year
+    event_id=(year-2000)*100
+    new_event=event
+    if n==3 or 'MASTERS' in event['Event Name'].upper():
         event_id+=4
         event_name=str(event['Year'])+" Masters"
-    elif event['Week']<25:
+    elif event['Event Name'].upper()[:3] in ('US ','U.S'):
         event_id+=6
         event_name=str(event['Year'])+" US Open"
-    elif event['Week']<30:
+    elif 'PGA' in event['Event Name'].upper():
+        event_id+=8
+        event_name=str(event['Year'])+" PGA Championship"        
+    else:
         event_id+=7
         event_name=str(event['Year'])+" Open Championship"
-    else:
-        event_id+=8
-        event_name=str(event['Year'])+" PGA Championship"
-    new_event=json_results('http://skipflog.appspot.com/picks?event_id='+str(event_id))
-    new_event["url"]="http://www.owgr.com"+event["url"]
+    new_event["event_id"]=event_id
+    new_event["event_name"]=event_name
+    new_event["owgr_url"]="http://www.owgr.com"+event["owgr_url"]
     return new_event
     
 def get_majors(year):
-    events_url='http://www.owgr.com/events?pageNo=1&pageSize=400&tour=Maj&year='+str(year)
+    events_url='http://www.owgr.com/events?tour=Maj&year='+str(year)
     soup=soup_results(events_url)
     headers=event_headers(soup)
     keys=headers.get('columns')[:6]
     events=[]
     for row in soup.findAll('tr'):
         if row.find(id="ctl5"):
-            event=row_results(row,keys)
-            if event.get("Points",0)>=100:
-                events.append(major_event(event))
+            event=major_event(year,len(events),row_results(row,keys))
+            event['results']=major_results(event["ID"])
+            print(event.get("Event Name"),event.get("event_name"))
+            events.append(event)
     return events
+
+def dump_majors(year):
+    majors=get_majors(year)
+    outfile=open('json/majors/'+str(year)+'.json','w')
+    mjson={"year": year, "majors": majors }
+    json.dump(mjson, outfile)
+    outfile.close()
 
 def dump_rankings():
     ranking=get_rankings()
@@ -407,3 +430,10 @@ def post_results():
     update_url="http://knarflog.appspot.com/update"
     result=urllib2.urlopen(update_url, encoded_args)
     return True
+
+def post_event(event):
+    eventstr=json.dumps(event)
+    query_args = { 'event_data': eventstr, 'submit':'Update' }  
+    encoded_args = urllib.urlencode(query_args)
+    update_url="http://susyandsteve.appspot.com/golfevent" 
+    result=urllib2.urlopen(update_url, encoded_args)         
